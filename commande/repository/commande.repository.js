@@ -1,21 +1,21 @@
-import commandemodel from "../model/commande.js";
+import commandemodel from "../model/commande.model.js";
 
 class commanderepository{
-    static creationcommande = async(data)=>{
+    static creation = async(data)=>{
         return await commandemodel.create(data)
     }
-    static recuperationId = async(id)=>{
+    static getById = async(id)=>{
         return await commandemodel.findById(id)
     }
-    static toutcommande = async()=>{
+    static getAll = async()=>{
         return await commandemodel.find()
     }
     static update = async(id,data)=>{
         return await commandemodel.findByIdAndUpdate(id,data)
     }
-    static suppression = async(id)=>{
+    static delete = async(id)=>{
         return await commandemodel.findByIdAndDelete(id)
     }
-}
+};
 export default commanderepository;
   

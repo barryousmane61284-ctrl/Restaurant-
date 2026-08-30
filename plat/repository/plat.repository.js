@@ -1,21 +1,21 @@
-import platModel from "../model/plat.js";
+import platModel from "../model/plat.model.js";
 
 class platrepository {
-    creationplat = async (Data) => {
+    static creation = async (Data) => {
         return await platModel.create(Data);
     }
 
-    getallplat = async () => {
+    static getAll = async () => {
         return await platModel.find();
     }
-    getplatbyId = async (id) => {
+    static getById = async (id) => {
         return await platModel.findById(id);
     }
-    updateplat = async (id, Data) => {
+    static update = async (id, Data) => {
         return await platModel.findByIdAndUpdate(id, Data, )
     }
-    deleteplat = async (id) => {
+    static delete = async (id) => {
         return await platModel.findByIdAndDelete(id);
     }   
 }
-export default new platrepository();
+export default platrepository;

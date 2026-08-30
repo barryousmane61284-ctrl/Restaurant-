@@ -1,16 +1,16 @@
-import clientmodel from "../model/client.js";
+import clientmodel from "../model/client.model.js";
 
 class clientrepository {
     // creation d'un client
-    static creationclient = async(data)=>{
+    static creation = async(data)=>{
         return  await clientmodel.create(data)
     }
     // recuperation d'un client par id
-    static recuperationId = async(id)=>{
+    static getById = async(id)=>{
         return  await clientmodel.findById(id)
     }
     // recuperation de tout les client
-    static toutclient = async()=>{
+    static getAll = async()=>{
         return await clientmodel.find()
     }
     // mise a jour
@@ -18,7 +18,7 @@ class clientrepository {
         return await clientmodel.findByIdAndUpdate(id,data)
     }
     // suppresion
-    static suppression = async(id)=>{
+    static delete = async(id)=>{
         return await clientmodel.findByIdAndDelete(id)
     }
 }

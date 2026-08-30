@@ -1,14 +1,18 @@
-import categoricontroller from '../controller/categori.controller.js';
-import express from 'express';
-import validationMiddleware from '../../commun/validator.js';
-import categorieschema from '../validate/categori.validate.js';
+import categoricontroller from "../controller/categori.controller.js";
+import express from "express";
+import validationMiddleware from "../../commun/validator.js";
+import categorieschema from "../validate/categori.validate.js";
+import authMiddleware from "../../authentification/middleware/auth.middleware.js";
+import roleMiddleware from "../../authentification/middleware/role.middleware.js";
 
 const routecategori = express.Router();
 
-routecategori.post('/creationcategori',validationMiddleware(categorieschema),categoricontroller.creationcategori);
-routecategori.get('/recuperationId/:id', categoricontroller.recuperationId);
-routecategori.get('/toutcategori', categoricontroller.toutcategori);
-routecategori.put('/update/:id', categoricontroller.update);
-routecategori.delete('/suppression/:id', categoricontroller.suppression);
+routecategori.use(authMiddleware);
+
+routecategori.post("/creation", roleMiddleware("admin"), validationMiddleware(categorieschema), categoricontroller.creation);
+routecategori.get("/:id", roleMiddleware("admin", "serveur", "caissier"), categoricontroller.getById);
+routecategori.get("/", roleMiddleware("admin", "serveur", "caissier"), categoricontroller.getAll);
+routecategori.put("/:id", roleMiddleware("admin"), categoricontroller.update);
+routecategori.delete("/:id", roleMiddleware("admin"), categoricontroller.delete);
 
 export default routecategori;

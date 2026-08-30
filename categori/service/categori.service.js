@@ -1,20 +1,25 @@
-import categorirepository from '../repository/categori.repository.js';
+import categorirepository from "../repository/categori.repository.js";
 
-class categoriservice{
-    static creationcategori = async(data)=>{
-        return await categorirepository.creationcategori(data)
+class categoriservice {
+    static creation = async(data) => {
+        return await categorirepository.creation(data);
     }
-    static recuperationId = async(id)=>{
-        return await categorirepository.recuperationId(id)
+
+    static getById = async(id) => {
+        return await categorirepository.getById(id);
     }
-    static toutcategori = async()=>{
-        return await categorirepository.toutcategori()
+
+    static getAll = async() => {
+        return await categorirepository.getAll();
     }
-    static update = async(id,data)=>{
-        return await categorirepository.update(id,data)
+
+    static update = async(id, data) => {
+        return await categorirepository.update(id, data);
     }
-    static suppression = async(id)=>{
-        return await categorirepository.suppression(id)
+
+    static delete = async(id) => {
+        return await categorirepository.delete(id);
     }
 }
+
 export default categoriservice;

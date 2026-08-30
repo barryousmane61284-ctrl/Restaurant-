@@ -2,24 +2,24 @@ import clientrepository from "../repository/client.repository.js";
 
 class clientservice{
     // creation
-    static creationclient = async(data)=>{
-        return await clientrepository.creationclient(data)
+    static creation = async(data)=>{
+        return await clientrepository.creation(data)
     }
     // recuperation
-    static toutclient = async()=>{
-        return await clientrepository.toutclient()
+    static getAll = async()=>{
+        return await clientrepository.getAll()
     }
     // recuperationID
-    static recuperationId = async(id)=>{
-        return await clientrepository.recuperationId(id)
+    static getById = async(id)=>{
+        return await clientrepository.getById(id)
     }
     //mise a jour
     static update = async(id,data)=>{
         return await clientrepository.update(id,data)
     }
     // suppression
-    static suppression = async(id)=>{
-        return await clientrepository.suppression(id)
+    static delete = async(id)=>{
+        return await clientrepository.delete(id)
     }
 
 }

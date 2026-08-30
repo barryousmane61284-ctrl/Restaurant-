@@ -2,9 +2,9 @@ import clientservice from "../service/client.service.js";
 
 class clientcontroller{
     // creation
-    static creationclient = async(req,res)=>{
+    static creation = async(req,res)=>{
         try{
-            res.status(201).json(await clientservice.creationclient(req.body))
+            res.status(201).json(await clientservice.creation(req.body))
         }
         catch (error){
             res.json(error)
@@ -12,18 +12,18 @@ class clientcontroller{
         }
     }
     // reuperation
-    static toutclient = async(req,res)=>{
+    static getAll = async(req,res)=>{
         try{
-            res.status(200).json(await clientservice.toutclient())
+            res.status(200).json(await clientservice.getAll())
         }
         catch(error){
             res.json(error)
         }
     }
     // recuperationID
-    static recuperationId = async(req,res)=>{
+    static getById = async(req,res)=>{
         try{
-            res.status(200).json(await clientservice.recuperationId(req.params.id))
+            res.status(200).json(await clientservice.getById(req.params.id))
         }
         catch(error){
             res.json(error)
@@ -39,9 +39,9 @@ class clientcontroller{
         }
     }
     // suppression
-    static suppression = async(req,res)=>{
+    static delete = async(req,res)=>{
         try{
-            res.status(200).json(await clientservice.suppression(req.params.id))
+            res.status(200).json(await clientservice.delete(req.params.id))
         }
         catch(error){
             res.json(error)         

@@ -1,25 +1,25 @@
 import commandeservice from "../service/commande.service.js";
 
 class commandecontroller{
-    static creationcommande = async(req,res)=>{
+    static creation = async(req,res)=>{
         try{
-            res.status(201).json(await commandeservice.creationcommande(req.body))
+            res.status(201).json(await commandeservice.creation(req.body))
         }
         catch(error){
             res.json(error)          
         }
     }
-     static recuperationId = async(req,res)=>{
+     static getById = async(req,res)=>{
         try{
-            res.status(200).json(await commandeservice.recuperationId(req.params.id))
+            res.status(200).json(await commandeservice.getById(req.params.id))
         }
         catch(error){
             res.json(error)          
         }
     }
-     static toutcommande = async(req,res)=>{
+     static getAll = async(req,res)=>{
         try{
-            res.status(200).json(await commandeservice.toutcommande())
+            res.status(200).json(await commandeservice.getAll())
         }
         catch(error){
             res.json(error)          
@@ -33,9 +33,9 @@ class commandecontroller{
             res.json(error)          
         }
     }
-     static suppression = async(req,res)=>{
+     static delete = async(req,res)=>{
         try{
-            res.status(200).json(await commandeservice.suppression(req.params.id))
+            res.status(200).json(await commandeservice.delete(req.params.id))
         }
         catch(error){
             res.json(error)        

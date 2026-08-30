@@ -2,6 +2,10 @@ import yup from 'yup';
 
 const commandeschema = yup.object().shape({
 
+    id_user: yup
+        .string()
+        .required("L'id de l'utilisateur est requis"),
+
     id_client: yup
         .string()
         .required("L'id du client est requis"),

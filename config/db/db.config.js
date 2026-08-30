@@ -1,6 +1,6 @@
 import { connect } from "mongoose";
 
-const cnx = connect ("mongodb://localhost:27017/gestion-de-restaurant")
+const cnx = connect (process.env.DB_URL || "mongodb://localhost:27017/gestion-de-restaurant")
 .then(()=>{
     console.log("connexion etablie avec mongodb")
 })

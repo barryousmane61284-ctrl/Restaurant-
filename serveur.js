@@ -1,20 +1,4 @@
-import express, { urlencoded } from 'express';
-import cnx from './config/db/db.config.js';
-import routeclient from './client/route/client.route.js';
-import routeplat from './plat/route/plat.route.js';
-import routecategori from './categori/route/categori.route.js';
-import routecommande from './commande/route/commande.route.js';
-
-// initialisation du serveur express
- const serveur = express();
- serveur.use(express.json()); //pour les requette json
- serveur.use(express.urlencoded({ extended: true}));
-
-//  liaison des routes
-serveur.use('/client',routeclient);
-serveur.use('/plat',routeplat);
-serveur.use('/categori',routecategori);
-serveur.use('/commande',routecommande);
+import serveur from "./app.js"
 
 // mise en ecoute du serveur sur le port 8000
 serveur.listen(8000,()=>{

@@ -1,37 +1,38 @@
 import platservice from '../service/plat.service.js';
 
 class platcontroller {
-    static creationplat = async (req, res) => {
+    static creation = async (req, res) => {
+       
         try {
-            res.status(201).json(await platservice.creationplat(req.body));
+            res.status(201).json(await platservice.creation(req.body));
         } catch (error) {
             res.json(error)
         }
     }
-    static getallplat = async (req, res) => {
+    static getAll = async (req, res) => {
         try {
-            res.status(200).json(await platservice.getallplat());
+            res.status(200).json(await platservice.getAll());
         } catch (error) {
             res.json(error)
         }
     }
-    static getplatbyId = async (req, res) => {
+    static getById = async (req, res) => {
         try {
-            res.status(200).json(await platservice.getplatbyId(req.params.id));
+            res.status(200).json(await platservice.getById(req.params.id));
         } catch (error) {
             res.json(error)
         }
     }
-    static updateplat = async (req, res) => {
+    static update = async (req, res) => {
         try {
-            res.status(200).json(await platservice.updateplat(req.params.id, req.body));
+            res.status(200).json(await platservice.update(req.params.id, req.body));
         } catch (error) {
             res.json(error)
         }
     }
-    static deleteplat = async (req, res) => {
+    static delete = async (req, res) => {
         try {
-            res.status(200).json(await platservice.deleteplat(req.params.id));
+            res.status(200).json(await platservice.delete(req.params.id));
         } catch (error) {
             res.json(error)
         }

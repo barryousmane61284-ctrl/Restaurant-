@@ -2,25 +2,25 @@ import platrepository from "../repository/plat.repository.js";
 
 class platservice {
     // creer un plat
-    creationplat = async (Data) => {
-        return await platrepository.creationplat(Data);
+    static creation = async (Data) => {
+        return await platrepository.creation(Data);
     }
     // recuperer tous les plats
-    getallplat = async () => {
-        return await platrepository.getallplat();
+    static getAll = async () => {
+        return await platrepository.getAll();
     }
     // recuperer un plat par son id
-    getplatbyId = async (id) => {
-        return await platrepository.getplatbyId(id);
+     static getById = async (id) => {
+        return await platrepository.getById(id);
     }
     // mettre a jour un plat
-    updateplat = async (id, Data) => {
-        return await platrepository.updateplat(id, Data);
+    static update = async (id, Data) => {
+        return await platrepository.update(id, Data);
     }
     // supprimer un plat
-    deleteplat = async (id) => {
-        return await platrepository.deleteplat(id);
+    static delete = async (id) => {
+        return await platrepository.delete(id);
     }
 }
 
-export default new platservice
+export default  platservice;
