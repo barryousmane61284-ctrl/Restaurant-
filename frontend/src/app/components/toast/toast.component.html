@@ -1,0 +1,21 @@
+<div class="toast-container" aria-live="polite">
+  <div 
+    *ngFor="let toast of (toastService.toasts$ | async)" 
+    class="toast-item toast-{{ toast.type }}"
+    (click)="fermer(toast.id)"
+    role="alert">
+    
+    <div class="toast-icon-wrapper">
+      <i [class]="getIcon(toast.type)"></i>
+    </div>
+
+    <div class="toast-content">
+      <h4 class="toast-title" *ngIf="toast.titre">{{ toast.titre }}</h4>
+      <p class="toast-message">{{ toast.message }}</p>
+    </div>
+
+    <button type="button" class="toast-close" (click)="fermer(toast.id); $event.stopPropagation()" aria-label="Fermer">
+      <i class='bx bx-x'></i>
+    </button>
+  </div>
+</div>

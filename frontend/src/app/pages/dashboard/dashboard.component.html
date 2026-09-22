@@ -1,0 +1,125 @@
+<!-- ================================================================= -->
+<!-- VUE : TABLEAU DE BORD (DASHBOARD) -->
+<!-- ================================================================= -->
+<div class="dashboard-page">
+  <!-- Titre et boutons d'action rapide -->
+  <div class="dashboard-header">
+    <div>
+      <h1>Tableau de bord</h1>
+      <p class="subtitle">Bienvenue sur l'espace de gestion de votre restaurant</p>
+    </div>
+
+    <!-- Raccourcis pour aller vite -->
+    <div class="header-actions">
+      <a routerLink="/plats" class="btn btn-primary">
+        <i class='bx bx-plus-circle'></i>
+        <span>Nouveau Plat</span>
+      </a>
+      <a routerLink="/commandes" class="btn btn-outline">
+        <i class='bx bx-receipt'></i>
+        <span>Voir Commandes</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Grille des 4 cartes d'indicateurs -->
+  <div class="stats-grid">
+    <!-- Carte 1 : Nombre total de plats -->
+    <div class="stat-card">
+      <div class="stat-icon icon-primary">
+        <i class='bx bxs-food-menu'></i>
+      </div>
+      <div class="stat-details">
+        <span class="stat-value">{{ totalPlats }}</span>
+        <span class="stat-label">Plats au menu</span>
+      </div>
+    </div>
+
+    <!-- Carte 2 : Commandes en attente -->
+    <div class="stat-card">
+      <div class="stat-icon icon-warning">
+        <i class='bx bx-time-five'></i>
+      </div>
+      <div class="stat-details">
+        <span class="stat-value">{{ commandesEnAttente }}</span>
+        <span class="stat-label">En attente</span>
+      </div>
+    </div>
+
+    <!-- Carte 3 : Commandes en cours de cuisson -->
+    <div class="stat-card">
+      <div class="stat-icon icon-info">
+        <i class='bx bx-dish'></i>
+      </div>
+      <div class="stat-details">
+        <span class="stat-value">{{ commandesEnCours }}</span>
+        <span class="stat-label">En cuisine</span>
+      </div>
+    </div>
+
+    <!-- Carte 4 : Chiffre d'affaires encaissé -->
+    <div class="stat-card">
+      <div class="stat-icon icon-success">
+        <i class='bx bx-wallet'></i>
+      </div>
+      <div class="stat-details">
+        <span class="stat-value">{{ totalChiffreAffaires | number }} GNF</span>
+        <span class="stat-label">Chiffre d'affaires</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carte des dernières commandes -->
+  <div class="card recent-orders-card">
+    <div class="card-header">
+      <h2>Dernières commandes</h2>
+      <a routerLink="/commandes" class="btn-link">Toutes les commandes <i class='bx bx-chevron-right'></i></a>
+    </div>
+
+    <!-- Spinner pendant la récupération des données -->
+    <div *ngIf="chargement" class="loading-state">
+      <i class='bx bx-loader-alt bx-spin'></i>
+      <span>Chargement des commandes...</span>
+    </div>
+
+    <!-- Message si aucune commande n'existe encore -->
+    <div *ngIf="!chargement && dernieresCommandes.length === 0" class="empty-state">
+      <i class='bx bx-notepad'></i>
+      <p>Aucune commande enregistrée pour le moment.</p>
+    </div>
+
+    <!-- Tableau des commandes -->
+    <div *ngIf="!chargement && dernieresCommandes.length > 0" class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Articles</th>
+            <th>Montant Total</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Boucle *ngFor pour afficher chaque commande -->
+          <tr *ngFor="let commande of dernieresCommandes">
+            <td>{{ commande.date_commande | date:'short' }}</td>
+            <td>
+              <strong>{{ commande.id_client?.nom || 'Client direct' }}</strong>
+            </td>
+            <td>
+              <span class="items-count">{{ commande.plat.length }} article(s)</span>
+            </td>
+            <td class="price-cell">{{ commande.total | number }} GNF</td>
+            <td>
+              <!-- Badge coloré selon le statut de la commande -->
+              <span class="badge {{ getBadgeClass(commande.status) }}">
+                {{ commande.status }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

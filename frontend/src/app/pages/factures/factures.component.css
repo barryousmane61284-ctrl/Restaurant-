@@ -1,0 +1,257 @@
+.factures-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-header h1 {
+  font-size: 1.85rem;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.data-table th {
+  background-color: #f8fafc;
+  padding: 14px 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.925rem;
+}
+
+.montant-cell {
+  font-weight: 800;
+  color: var(--secondary);
+}
+
+.pay-mode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.ticket-receipt {
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.ticket-header h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-bottom: 4px;
+  font-size: 1.5rem;
+}
+
+.ticket-header p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.ticket-num {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 6px;
+  word-break: break-all;
+}
+
+.ticket-info {
+  text-align: left;
+  border-top: 1px dashed var(--border);
+  border-bottom: 1px dashed var(--border);
+  padding: 12px 0;
+  margin: 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-row span {
+  color: var(--text-muted);
+}
+
+.info-row strong {
+  color: var(--text-color, #1e293b);
+  text-align: right;
+}
+
+.info-row small {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.ticket-divider {
+  border-bottom: 1px dashed var(--border);
+  margin: 6px 0;
+}
+
+.ticket-items-section {
+  margin: 12px 0;
+}
+
+.ticket-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+  margin: 8px 0;
+}
+
+.ticket-items-table th {
+  padding: 6px 4px;
+  border-bottom: 1px dashed var(--border);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ticket-items-table td {
+  padding: 6px 4px;
+  border-bottom: 1px dotted var(--border);
+}
+
+.col-designation {
+  text-align: left;
+}
+
+.col-qte {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.col-pu {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.col-total {
+  text-align: right;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ticket-total-box {
+  background: var(--primary-light);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin: 16px 0;
+  text-align: center;
+}
+
+.ticket-total-box span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ticket-price {
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  color: var(--primary) !important;
+  margin-top: 4px;
+}
+
+.ticket-footer-msg {
+  text-align: center;
+  margin-bottom: 16px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.ticket-footer-msg p {
+  font-weight: 600;
+  margin: 0;
+}
+
+.ticket-footer-msg small {
+  font-size: 0.75rem;
+}
+
+/* Mode Impression spécifique ticket de caisse */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .modal-overlay,
+  .modal-overlay * {
+    visibility: visible;
+  }
+  .modal-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex;
+    justify-content: center;
+  }
+  .ticket-receipt {
+    box-shadow: none !important;
+    border: 1px solid #ddd;
+    max-width: 340px !important;
+    width: 100% !important;
+    padding: 16px !important;
+    margin: 0 auto !important;
+  }
+  .hide-on-print {
+    display: none !important;
+  }
+}
+
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 12px;
+  color: var(--text-muted);
+}

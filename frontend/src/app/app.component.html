@@ -1,0 +1,19 @@
+<!-- ================================================================= -->
+<!-- NOTIFICATIONS GLOBALES TOAST -->
+<!-- ================================================================= -->
+<app-toast></app-toast>
+
+<div class="app-layout">
+  <!-- 1. La barre du haut (Navbar) : visible uniquement si connecté -->
+  <app-navbar *ngIf="afficherNavigation"></app-navbar>
+
+  <div class="app-body">
+    <!-- 2. Le menu de gauche (Sidebar) : visible uniquement si connecté -->
+    <app-sidebar *ngIf="afficherNavigation"></app-sidebar>
+
+    <!-- 3. La zone centrale dynamique : c'est ici qu'Angular injecte la page active -->
+    <main class="main-content" [class.full-page]="!afficherNavigation">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

@@ -1,2 +1,30 @@
-./node_modules/
-./.env
+# ===================================================
+# FICHIERS A NE PAS POUSSER SUR GITHUB
+# ===================================================
+
+# Dépendances Node.js (à réinstaller avec npm install)
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Dossier de build Angular (généré par ng build)
+frontend/dist/
+
+# Fichiers d'environnement (contiennent les secrets)
+backend/.env
+.env
+
+# Fichiers uploadés (photos de plats, profils, etc.)
+backend/uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache Angular et OS
+frontend/.angular/
+.DS_Store
+Thumbs.db
+
+# Fichiers IDE
+.vscode/settings.json

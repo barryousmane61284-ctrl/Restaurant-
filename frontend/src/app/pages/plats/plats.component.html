@@ -1,0 +1,265 @@
+<div class="plats-page">
+  <!-- En-tête avec titre et boutons d'action -->
+  <div class="page-header">
+    <div>
+      <h1>Carte & Plats</h1>
+      <p class="subtitle">Consultez la carte du restaurant, gérez vos plats et catégories</p>
+    </div>
+
+    <!-- Actions réservées aux administrateurs -->
+    <div class="header-actions" *ngIf="authService.estAdmin()">
+      <button (click)="ouvrirModalCategorie()" class="btn btn-outline">
+        <i class='bx bx-folder-plus'></i>
+        <span>Nouvelle Catégorie</span>
+      </button>
+
+      <button (click)="ouvrirModalAjout()" class="btn btn-primary">
+        <i class='bx bx-plus-circle'></i>
+        <span>Ajouter un plat</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Barre de filtres par catégories -->
+  <div class="categories-bar">
+    <button 
+      (click)="filtrerParCategorie('tous')" 
+      class="cat-chip" 
+      [class.active]="categorieSelectionnee === 'tous'">
+      Tous les plats ({{ plats.length }})
+    </button>
+
+    <button 
+      *ngFor="let cat of categories" 
+      (click)="filtrerParCategorie(cat._id)" 
+      class="cat-chip" 
+      [class.active]="categorieSelectionnee === cat._id">
+      {{ cat.nom }}
+    </button>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="chargement" class="loading-state">
+    <i class='bx bx-loader-alt bx-spin'></i>
+    <span>Chargement des plats en cours...</span>
+  </div>
+
+  <!-- État vide -->
+  <div *ngIf="!chargement && platsFiltres.length === 0" class="empty-state">
+    <i class='bx bx-restaurant'></i>
+    <p>Aucun plat trouvé dans cette catégorie.</p>
+  </div>
+
+  <!-- Grille des cartes de plats -->
+  <div *ngIf="!chargement && platsFiltres.length > 0" class="plats-grid">
+    <div *ngFor="let plat of platsFiltres" class="plat-card" (click)="ouvrirDetailPlat(plat)">
+      <div class="plat-image-container">
+        <img 
+          [src]="platService.getImageUrl(plat.image)" 
+          alt="{{ plat.nom }}" 
+          class="plat-img"
+          loading="lazy">
+        <span class="plat-category-badge">{{ getNomCategorie(plat.categori) }}</span>
+        <div class="plat-zoom-hint">
+          <i class='bx bx-zoom-in'></i>
+          <span>Voir détails</span>
+        </div>
+      </div>
+
+      <div class="plat-body">
+        <div class="plat-title-row">
+          <h3 class="plat-nom">{{ plat.nom }}</h3>
+          <span class="plat-prix">{{ plat.prix | number }} GNF</span>
+        </div>
+
+        <p class="plat-desc">{{ plat.description }}</p>
+
+        <div class="plat-footer">
+          <span class="badge" [class.badge-success]="plat.disponible" [class.badge-danger]="!plat.disponible">
+            {{ plat.disponible ? 'Disponible' : 'Épuisé' }}
+          </span>
+
+          <!-- Boutons Modifier et Supprimer pour l'Admin -->
+          <div class="plat-card-actions" *ngIf="authService.estAdmin()">
+            <button 
+              (click)="ouvrirModalEdition(plat, $event)" 
+              class="btn-icon-action" 
+              title="Modifier ce plat">
+              <i class='bx bx-edit'></i>
+            </button>
+
+            <button 
+              (click)="supprimerPlat(plat._id, $event)" 
+              class="btn-icon-danger" 
+              title="Supprimer ce plat">
+              <i class='bx bx-trash'></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODALE : AJOUT / MODIFICATION D'UN PLAT -->
+  <!-- =============================================================== -->
+  <div class="modal-overlay" *ngIf="modalPlatOuverte" (click)="fermerModalPlat()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ modeEdition ? 'Modifier le plat' : 'Nouveau Plat' }}</h2>
+        <button class="modal-close" (click)="fermerModalPlat()">&times;</button>
+      </div>
+
+      <div class="alert-error" *ngIf="messageErreur">
+        <i class='bx bx-error-circle'></i>
+        <span>{{ messageErreur }}</span>
+      </div>
+
+      <form (ngSubmit)="enregistrerPlat()">
+        <div class="form-group">
+          <label class="form-label">Nom du plat *</label>
+          <input type="text" class="form-control" [(ngModel)]="formPlat.nom" name="nom" placeholder="Ex: Riz au Gras Poulet" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Catégorie *</label>
+          <select class="form-control" [(ngModel)]="formPlat.categori" name="categori" required>
+            <option *ngFor="let cat of categories" [value]="cat._id">{{ cat.nom }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Prix (GNF) *</label>
+          <input type="number" class="form-control" [(ngModel)]="formPlat.prix" name="prix" placeholder="Ex: 45000" min="1" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Disponibilité</label>
+          <select class="form-control" [(ngModel)]="formPlat.disponible" name="disponible">
+            <option [ngValue]="true">Disponible en cuisine</option>
+            <option [ngValue]="false">Épuisé (Rupture)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" rows="3" [(ngModel)]="formPlat.description" name="description" placeholder="Ingrédients, accompagnements..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Photo du plat (laisser vide pour garder l'actuelle)</label>
+          <input type="file" class="form-control" (change)="onFichierSelectionne($event)" accept="image/*">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="fermerModalPlat()">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="enregistrementEnCours">
+            <span *ngIf="!enregistrementEnCours">{{ modeEdition ? 'Enregistrer les modifications' : 'Créer le plat' }}</span>
+            <span *ngIf="enregistrementEnCours"><i class='bx bx-loader-alt bx-spin'></i> Envoi...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODALE : AJOUT D'UNE CATÉGORIE -->
+  <!-- =============================================================== -->
+  <div class="modal-overlay" *ngIf="modalCategorieOuverte" (click)="fermerModalCategorie()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Nouvelle Catégorie</h2>
+        <button class="modal-close" (click)="fermerModalCategorie()">&times;</button>
+      </div>
+
+      <div class="alert-error" *ngIf="messageErreurCat">
+        <i class='bx bx-error-circle'></i>
+        <span>{{ messageErreurCat }}</span>
+      </div>
+
+      <form (ngSubmit)="enregistrerCategorie()">
+        <div class="form-group">
+          <label class="form-label">Nom de la catégorie *</label>
+          <input type="text" class="form-control" [(ngModel)]="nouvelleCategorie.nom" name="catNom" placeholder="Ex: Jus Frais, Desserts, Grillades" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-control" [(ngModel)]="nouvelleCategorie.description" name="catDesc" placeholder="Ex: Nos boissons faites maison">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="fermerModalCategorie()">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="enregistrementCatEnCours">
+            <span *ngIf="!enregistrementCatEnCours">Créer la catégorie</span>
+            <span *ngIf="enregistrementCatEnCours"><i class='bx bx-loader-alt bx-spin'></i> Enregistrement...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODALE : AGRANDISSEMENT ET DÉTAIL DU PLAT (LIGHTBOX) -->
+  <!-- =============================================================== -->
+  <div class="modal-overlay modal-detail-overlay" *ngIf="modalDetailOuverte && platSelectionne" (click)="fermerDetailPlat()">
+    <div class="modal-content plat-detail-card" (click)="$event.stopPropagation()">
+      <button class="modal-close-round" (click)="fermerDetailPlat()" aria-label="Fermer">
+        <i class='bx bx-x'></i>
+      </button>
+
+      <!-- Grande Image Agrandie avec badge -->
+      <div class="plat-detail-image-wrapper">
+        <img 
+          [src]="platService.getImageUrl(platSelectionne.image)" 
+          alt="{{ platSelectionne.nom }}" 
+          class="plat-detail-large-img">
+        <div class="plat-detail-badges">
+          <span class="plat-detail-cat">{{ getNomCategorie(platSelectionne.categori) }}</span>
+          <span class="badge" [class.badge-success]="platSelectionne.disponible" [class.badge-danger]="!platSelectionne.disponible">
+            {{ platSelectionne.disponible ? 'Disponible' : 'Épuisé' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Informations complètes du Plat -->
+      <div class="plat-detail-info">
+        <div class="plat-detail-header">
+          <div>
+            <h2 class="plat-detail-title">{{ platSelectionne.nom }}</h2>
+            <div class="plat-detail-meta" *ngIf="platSelectionne._id">
+              <span class="meta-tag"><i class='bx bx-hash'></i> Réf: #{{ platSelectionne._id.substring(platSelectionne._id.length - 6) }}</span>
+              <span class="meta-tag"><i class='bx bx-dish'></i> {{ getNomCategorie(platSelectionne.categori) }}</span>
+            </div>
+          </div>
+          <div class="plat-detail-price">{{ platSelectionne.prix | number }} GNF</div>
+        </div>
+
+        <div class="plat-detail-desc-box">
+          <span class="desc-label"><i class='bx bx-info-circle'></i> Description & Préparation</span>
+          <p class="desc-text">{{ platSelectionne.description || 'Aucune description détaillée renseignée pour ce plat.' }}</p>
+        </div>
+
+        <div class="plat-detail-actions">
+          <button 
+            *ngIf="authService.estAdmin()" 
+            (click)="ouvrirModalEdition(platSelectionne, $event)" 
+            class="btn btn-outline"
+            title="Modifier ce plat">
+            <i class='bx bx-edit'></i> Modifier ce plat
+          </button>
+          <button 
+            *ngIf="authService.estAdmin()" 
+            (click)="supprimerPlat(platSelectionne._id, $event)" 
+            class="btn btn-danger"
+            title="Supprimer ce plat">
+            <i class='bx bx-trash'></i> Supprimer
+          </button>
+          <button class="btn btn-secondary" (click)="fermerDetailPlat()">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

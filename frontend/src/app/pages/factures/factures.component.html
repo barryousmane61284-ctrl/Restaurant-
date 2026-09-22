@@ -1,0 +1,183 @@
+<!-- ================================================================= -->
+<!-- VUE : FACTURES ET ENCAISSEMENTS -->
+<!-- ================================================================= -->
+<div class="factures-page">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div>
+      <h1>Factures & Encaissements</h1>
+      <p class="subtitle">Historique des règlements et reçus clients</p>
+    </div>
+  </div>
+
+  <!-- Alerte d'erreur -->
+  <div class="alert-error" *ngIf="messageErreur">
+    <i class='bx bx-error-circle'></i>
+    <span>{{ messageErreur }}</span>
+  </div>
+
+  <!-- État de chargement -->
+  <div *ngIf="chargement" class="loading-state">
+    <i class='bx bx-loader-alt bx-spin'></i>
+    <span>Chargement des factures...</span>
+  </div>
+
+  <!-- État vide si aucune facture -->
+  <div *ngIf="!chargement && factures.length === 0" class="empty-state">
+    <i class='bx bx-receipt'></i>
+    <p>Aucune facture enregistrée pour le moment.</p>
+  </div>
+
+  <!-- Tableau des factures -->
+  <div *ngIf="!chargement && factures.length > 0" class="card table-card">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>N° Facture</th>
+            <th>Date & Heure</th>
+            <th>Client</th>
+            <th>Moyen de paiement</th>
+            <th>Montant Encaissé</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Boucle sur chaque facture -->
+          <tr *ngFor="let f of factures">
+            <td><strong>#{{ f._id.substring(f._id.length - 6) }}</strong></td>
+            <td>{{ f.date_facture | date:'medium' }}</td>
+            <td>{{ f.id_client?.nom || 'Client direct' }}</td>
+            <td>
+              <span class="pay-mode"><i class='bx bx-credit-card'></i> {{ f.mode_paiement }}</span>
+            </td>
+            <td class="montant-cell">{{ f.montant_total | number }} GNF</td>
+            <td>
+              <span class="badge badge-success">{{ f.statut }}</span>
+            </td>
+            <td>
+              <!-- Actions sur la facture -->
+              <div class="table-actions" style="display: flex; gap: 8px; align-items: center;">
+                <button (click)="voirDetails(f)" class="btn btn-sm btn-outline" title="Voir le reçu">
+                  <i class='bx bx-show'></i> Voir Reçu
+                </button>
+                <button 
+                  *ngIf="authService.estAdmin()" 
+                  (click)="supprimerFacture(f._id, $event)" 
+                  class="btn-icon-danger" 
+                  title="Supprimer définitivement cette facture">
+                  <i class='bx bx-trash'></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODALE : TICKET DE CAISSE / REÇU IMPRIMABLE -->
+  <!-- =============================================================== -->
+  <div class="modal-overlay" *ngIf="factureSelectionnee" (click)="fermerDetails()">
+    <div class="modal-content ticket-receipt" (click)="$event.stopPropagation()">
+      <div class="ticket-header">
+        <h2>GourmetResto</h2>
+        <p>Facture de vente & Reçu client</p>
+        <span class="ticket-num">Réf: #{{ factureSelectionnee._id }}</span>
+      </div>
+
+      <div class="ticket-info">
+        <div class="info-row">
+          <span>Date :</span>
+          <strong>{{ factureSelectionnee.date_facture | date:'dd/MM/yyyy HH:mm' }}</strong>
+        </div>
+        <div class="info-row" *ngIf="factureSelectionnee.id_commande?.date_commande">
+          <span>Prise le :</span>
+          <span>{{ factureSelectionnee.id_commande.date_commande | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        
+        <div class="ticket-divider"></div>
+
+        <div class="info-row">
+          <span>Client :</span>
+          <strong>
+            {{ factureSelectionnee.id_client ? (factureSelectionnee.id_client.nom + ' ' + (factureSelectionnee.id_client.prenom || '')) : 'Client direct' }}
+          </strong>
+        </div>
+        <div class="info-row" *ngIf="factureSelectionnee.id_client?.telephone">
+          <span>Téléphone :</span>
+          <span>{{ factureSelectionnee.id_client.telephone }}</span>
+        </div>
+
+        <div class="ticket-divider"></div>
+
+        <div class="info-row" *ngIf="factureSelectionnee.id_commande?.id_user">
+          <span>Commande prise par :</span>
+          <strong>
+            {{ factureSelectionnee.id_commande.id_user.prenom }} {{ factureSelectionnee.id_commande.id_user.nom }}
+            <small *ngIf="factureSelectionnee.id_commande.id_user.role">({{ factureSelectionnee.id_commande.id_user.role }})</small>
+          </strong>
+        </div>
+
+        <div class="info-row" *ngIf="factureSelectionnee.id_user">
+          <span>Encaissé par :</span>
+          <span>{{ factureSelectionnee.id_user.prenom }} {{ factureSelectionnee.id_user.nom }}</span>
+        </div>
+
+        <div class="info-row">
+          <span>Règlement :</span>
+          <strong>{{ factureSelectionnee.mode_paiement }}</strong>
+        </div>
+      </div>
+
+      <!-- Détail des articles commandés -->
+      <div class="ticket-items-section" *ngIf="factureSelectionnee.id_commande?.plat && factureSelectionnee.id_commande.plat.length > 0">
+        <div class="ticket-divider"></div>
+        <table class="ticket-items-table">
+          <thead>
+            <tr>
+              <th class="col-designation">Article</th>
+              <th class="col-qte">Qté</th>
+              <th class="col-pu">P.U</th>
+              <th class="col-total">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of factureSelectionnee.id_commande.plat">
+              <td class="col-designation">{{ item.id_plat?.nom || 'Article' }}</td>
+              <td class="col-qte">x{{ item.quantite }}</td>
+              <td class="col-pu">{{ item.prixunitaire | number }}</td>
+              <td class="col-total">{{ (item.quantite * item.prixunitaire) | number }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="ticket-divider"></div>
+      </div>
+
+      <div class="ticket-total-box">
+        <span>TOTAL ENCAISSÉ</span>
+        <span class="ticket-price">{{ factureSelectionnee.montant_total | number }} GNF</span>
+      </div>
+
+      <div class="ticket-footer-msg">
+        <p>Merci pour votre visite !</p>
+        <small>À très bientôt chez GourmetResto</small>
+      </div>
+
+      <div class="modal-actions hide-on-print">
+        <button 
+          *ngIf="authService.estAdmin()" 
+          class="btn btn-danger" 
+          (click)="supprimerFacture(factureSelectionnee._id)">
+          <i class='bx bx-trash'></i> Supprimer
+        </button>
+        <button class="btn btn-secondary" (click)="fermerDetails()">Fermer</button>
+        <button class="btn btn-primary" (click)="imprimerFacture()">
+          <i class='bx bx-printer'></i> Imprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

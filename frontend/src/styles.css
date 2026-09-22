@@ -1,0 +1,260 @@
+/* ==========================================================================
+   SYSTÈME DE DESIGN GLOBAL (STYLES.CSS)
+   ==========================================================================
+   À QUOI SERT CE FICHIER ?
+   Il définit les couleurs, polices, boutons, formulaires et cartes
+   qui sont réutilisés dans TOUTES les pages de notre application.
+   ========================================================================== */
+
+/* 1. LES VARIABLES DE COULEURS ET DE THÈME */
+:root {
+  /* Couleurs principales du restaurant */
+  --primary: #ff6b35;          /* Orange chaleureux (boutons principaux, logos) */
+  --primary-hover: #fa5216;    /* Orange plus foncé quand on survole la souris */
+  --primary-light: #fff2ed;    /* Fond orange très clair */
+  --secondary: #1a1f36;        /* Bleu nuit profond pour les titres */
+  --secondary-light: #2d3748;
+  
+  /* Couleurs des statuts */
+  --success: #10b981;          /* Vert pour "Terminée" ou "Disponible" */
+  --success-light: #d1fae5;
+  --warning: #f59e0b;          /* Jaune pour "En attente" */
+  --warning-light: #fef3c7;
+  --danger: #ef4444;           /* Rouge pour "Annulée" ou "Épuisé" */
+  --danger-light: #fee2e2;
+  --info: #3b82f6;             /* Bleu pour "En cuisine" */
+  --info-light: #dbeafe;
+
+  /* Couleurs des fonds et des textes */
+  --bg-main: #f8fafc;          /* Fond gris très clair pour reposer les yeux */
+  --bg-card: #ffffff;          /* Fond blanc pour les cartes */
+  --text-main: #1e293b;        /* Texte principal très lisible */
+  --text-muted: #64748b;       /* Texte secondaire gris */
+  --border: #e2e8f0;           /* Bordure discrète */
+
+  /* Arrondis des coins (Border Radius) */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  /* Ombres douces pour donner du relief */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.06);
+
+  /* Transition fluide pour les effets au survol */
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 2. REMISE À ZÉRO ET POLICE PAR DÉFAUT */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 3. TYPOGRAPHIE (TITRES) */
+h1, h2, h3, h4, h5 {
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+/* 4. STYLES DES BOUTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.925rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+  text-align: center;
+}
+
+/* Bouton principal orange */
+.btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35);
+}
+
+/* Bouton secondaire gris */
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: var(--text-main);
+}
+.btn-secondary:hover {
+  background-color: #cbd5e1;
+}
+
+/* Bouton d'annulation rouge */
+.btn-danger {
+  background-color: var(--danger-light);
+  color: var(--danger);
+}
+.btn-danger:hover {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+
+/* Bouton transparent avec bordure */
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+}
+.btn-outline:hover {
+  background-color: #f1f5f9;
+}
+
+/* Petit bouton */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+}
+
+/* 5. CHAMPS DE FORMULAIRES */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.form-control {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text-main);
+  background-color: #ffffff;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+/* 6. BADGES DE STATUT (PASTILLES DE COULEUR) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-warning {
+  background-color: var(--warning-light);
+  color: #b45309;
+}
+
+.badge-info {
+  background-color: var(--info-light);
+  color: #1d4ed8;
+}
+
+.badge-success {
+  background-color: var(--success-light);
+  color: #047857;
+}
+
+.badge-danger {
+  background-color: var(--danger-light);
+  color: #b91c1c;
+}
+
+/* 7. CARTES CONTENEURS */
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 8. FENÊTRE MODALE (POPUP) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 520px;
+  padding: 28px;
+  box-shadow: var(--shadow-card);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* Animation douce d'apparition */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

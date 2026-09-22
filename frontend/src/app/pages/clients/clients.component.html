@@ -1,0 +1,285 @@
+<div class="clients-page">
+  <!-- En-tête de la page -->
+  <div class="page-header">
+    <div>
+      <h1>Clients & Fidélité</h1>
+      <p class="subtitle">Répertoire des clients, historique des commandes et total des dépenses</p>
+    </div>
+
+    <button (click)="ouvrirModalAjout()" class="btn btn-primary">
+      <i class='bx bx-user-plus'></i>
+      <span>Nouveau Client</span>
+    </button>
+  </div>
+
+  <!-- État de chargement -->
+  <div *ngIf="chargement" class="loading-state">
+    <i class='bx bx-loader-alt bx-spin'></i>
+    <span>Chargement des clients en cours...</span>
+  </div>
+
+  <!-- État vide si aucun client -->
+  <div *ngIf="!chargement && clients.length === 0" class="empty-state">
+    <i class='bx bx-user-x'></i>
+    <p>Aucun client enregistré pour le moment.</p>
+    <button (click)="ouvrirModalAjout()" class="btn btn-primary btn-sm">
+      <i class='bx bx-plus'></i> Ajouter le premier client
+    </button>
+  </div>
+
+  <!-- Liste / Tableau des clients -->
+  <div *ngIf="!chargement && clients.length > 0" class="card table-card">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Téléphone</th>
+            <th>Email</th>
+            <th>Adresse</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of clients">
+            <td>
+              <div class="client-cell">
+                <div class="client-avatar">
+                  <i class='bx bxs-user'></i>
+                </div>
+                <div>
+                  <strong>{{ c.prenom }} {{ c.nom }}</strong>
+                  <span class="client-sub">ID: #{{ c._id ? c._id.substring(c._id.length - 6) : '' }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="contact-info" *ngIf="c.telephone">
+                <i class='bx bx-phone'></i> {{ c.telephone }}
+              </span>
+              <span class="text-muted" *ngIf="!c.telephone">-</span>
+            </td>
+            <td>
+              <span class="contact-info" *ngIf="c.email">
+                <i class='bx bx-envelope'></i> {{ c.email }}
+              </span>
+              <span class="text-muted" *ngIf="!c.email">-</span>
+            </td>
+            <td>
+              <span class="contact-info" *ngIf="c.adresse">
+                <i class='bx bx-map-pin'></i> {{ c.adresse }}
+              </span>
+              <span class="text-muted" *ngIf="!c.adresse">-</span>
+            </td>
+            <td>
+              <div class="table-actions">
+                <button (click)="voirDetailClient(c)" class="btn btn-sm btn-outline" title="Voir les commandes et factures">
+                  <i class='bx bx-show'></i> Détails
+                </button>
+                <button (click)="ouvrirModalEdition(c, $event)" class="btn btn-sm btn-outline" title="Modifier ce client">
+                  <i class='bx bx-edit'></i> Modifier
+                </button>
+                <button 
+                  *ngIf="authService.estAdmin()" 
+                  (click)="supprimerClient(c._id, $event)" 
+                  class="btn-icon-danger" 
+                  title="Supprimer ce client">
+                  <i class='bx bx-trash'></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODALE : CLIENT (AJOUT / MODIFICATION) -->
+  <!-- =============================================================== -->
+  <div class="modal-overlay" *ngIf="modalAjoutOuverte" (click)="fermerModalAjout()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ modeEdition ? 'Modifier le client' : 'Ajouter un client' }}</h2>
+        <button class="modal-close" (click)="fermerModalAjout()">&times;</button>
+      </div>
+
+      <div class="alert-error" *ngIf="messageErreur">
+        <i class='bx bx-error-circle'></i>
+        <span>{{ messageErreur }}</span>
+      </div>
+
+      <form (ngSubmit)="enregistrerClient()">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Prénom *</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="nouveauClient.prenom" 
+              name="prenom" 
+              placeholder="Ex: Ibrahima" 
+              required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nom *</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="nouveauClient.nom" 
+              name="nom" 
+              placeholder="Ex: Sow" 
+              required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Téléphone</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="nouveauClient.telephone" 
+              name="telephone" 
+              placeholder="Ex: 622 00 00 00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input 
+              type="email" 
+              class="form-control" 
+              [(ngModel)]="nouveauClient.email" 
+              name="email" 
+              placeholder="client@domaine.com">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Adresse / Quartier</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            [(ngModel)]="nouveauClient.adresse" 
+            name="adresse" 
+            placeholder="Ex: Kipé, Conakry">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="fermerModalAjout()">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="enregistrementEnCours">
+            <span *ngIf="!enregistrementEnCours"><i class='bx bx-check'></i> {{ modeEdition ? 'Mettre à jour' : 'Enregistrer' }}</span>
+            <span *ngIf="enregistrementEnCours"><i class='bx bx-loader-alt bx-spin'></i> {{ modeEdition ? 'Mise à jour...' : 'Enregistrement...' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODALE : FICHE DÉTAILLÉE DU CLIENT (COMMANDES & FACTURES) -->
+  <!-- =============================================================== -->
+  <div class="modal-overlay" *ngIf="clientSelectionne" (click)="fermerDetail()">
+    <div class="modal-content modal-detail" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="client-detail-title">
+          <div class="client-avatar-lg">
+            <i class='bx bxs-user'></i>
+          </div>
+          <div>
+            <h2>{{ clientSelectionne.prenom }} {{ clientSelectionne.nom }}</h2>
+            <p class="subtitle">
+              <span *ngIf="clientSelectionne.telephone"><i class='bx bx-phone'></i> {{ clientSelectionne.telephone }}</span>
+              <span *ngIf="clientSelectionne.email"> • <i class='bx bx-envelope'></i> {{ clientSelectionne.email }}</span>
+              <span *ngIf="clientSelectionne.adresse"> • <i class='bx bx-map-pin'></i> {{ clientSelectionne.adresse }}</span>
+            </p>
+          </div>
+        </div>
+        <button class="modal-close" (click)="fermerDetail()">&times;</button>
+      </div>
+
+      <!-- Résumé fidélité / dépenses -->
+      <div class="client-stats-box">
+        <div class="stat-card">
+          <span class="stat-label">Commandes passées</span>
+          <span class="stat-value">{{ commandesClient.length }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Factures réglées</span>
+          <span class="stat-value">{{ facturesClient.length }}</span>
+        </div>
+        <div class="stat-card stat-total">
+          <span class="stat-label">Total des achats</span>
+          <span class="stat-value text-primary">{{ getTotalDepenses() | number }} GNF</span>
+        </div>
+      </div>
+
+      <!-- Chargement des détails -->
+      <div *ngIf="chargementDetail" class="loading-state">
+        <i class='bx bx-loader-alt bx-spin'></i>
+        <span>Chargement de l'historique...</span>
+      </div>
+
+      <div *ngIf="!chargementDetail" class="detail-sections">
+        <!-- Section Commandes -->
+        <div class="detail-section">
+          <h3 class="section-title">
+            <i class='bx bx-receipt'></i> Historique des Commandes ({{ commandesClient.length }})
+          </h3>
+
+          <div *ngIf="commandesClient.length === 0" class="empty-substate">
+            <p>Aucune commande enregistrée pour ce client.</p>
+          </div>
+
+          <div *ngIf="commandesClient.length > 0" class="history-list">
+            <div *ngFor="let cmd of commandesClient" class="history-item">
+              <div class="history-item-header">
+                <span class="history-id">#{{ cmd._id.substring(cmd._id.length - 6) }}</span>
+                <span class="badge {{ getBadgeStatut(cmd.status) }}">{{ cmd.status }}</span>
+              </div>
+              <div class="history-item-body">
+                <span class="history-date">{{ cmd.date_commande | date:'medium' }}</span>
+                <span class="history-amount">{{ cmd.total | number }} GNF</span>
+              </div>
+              <div class="history-plats" *ngIf="cmd.plat && cmd.plat.length > 0">
+                <span *ngFor="let p of cmd.plat" class="plat-tag">
+                  {{ p.quantite }}x {{ p.id_plat?.nom || 'Plat' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Factures -->
+        <div class="detail-section">
+          <h3 class="section-title">
+            <i class='bx bx-wallet'></i> Factures & Règlements ({{ facturesClient.length }})
+          </h3>
+
+          <div *ngIf="facturesClient.length === 0" class="empty-substate">
+            <p>Aucune facture émise pour ce client.</p>
+          </div>
+
+          <div *ngIf="facturesClient.length > 0" class="history-list">
+            <div *ngFor="let fac of facturesClient" class="history-item">
+              <div class="history-item-header">
+                <span class="history-id">Facture #{{ fac._id.substring(fac._id.length - 6) }}</span>
+                <span class="badge badge-success">{{ fac.statut || 'Payée' }}</span>
+              </div>
+              <div class="history-item-body">
+                <span class="history-date">{{ fac.date_facture | date:'medium' }}</span>
+                <span class="history-amount text-primary">{{ fac.montant_total | number }} GNF</span>
+              </div>
+              <div class="history-payment">
+                <i class='bx bx-credit-card'></i> {{ fac.mode_paiement }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button class="btn btn-secondary" (click)="fermerDetail()">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>

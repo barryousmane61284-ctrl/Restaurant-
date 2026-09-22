@@ -1,0 +1,298 @@
+.commandes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-header h1 {
+  font-size: 1.85rem;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.cat-chip {
+  padding: 8px 18px;
+  border-radius: 9999px;
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cat-chip.active {
+  background-color: var(--secondary);
+  color: #ffffff;
+  border-color: var(--secondary);
+}
+
+/* Grille des commandes */
+.commandes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.commande-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.commande-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.commande-id {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--secondary);
+  display: block;
+}
+
+.commande-date {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+}
+
+.commande-client {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.commande-items {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.item-qty {
+  font-weight: 700;
+  color: var(--primary);
+  width: 25px;
+}
+
+.item-name {
+  flex-grow: 1;
+}
+
+.item-price {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.commande-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding-top: 6px;
+}
+
+.total-amount {
+  color: var(--primary);
+  font-size: 1.2rem;
+}
+
+.commande-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* Panier dans la modale */
+.panier-section {
+  margin-bottom: 16px;
+}
+
+.ajouter-plat-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.qty-input {
+  width: 70px;
+}
+
+.panier-table {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.panier-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.panier-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+}
+
+.total-badge {
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.encaissement-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.encaissement-summary {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.total-a-payer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.montant-grand {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.ticket-receipt {
+  max-width: 400px;
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.ticket-header h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-bottom: 4px;
+}
+
+.ticket-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.ticket-num {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 6px;
+}
+
+.ticket-info {
+  text-align: left;
+  border-top: 1px dashed var(--border);
+  border-bottom: 1px dashed var(--border);
+  padding: 16px 0;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.ticket-total-box {
+  background: var(--primary-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.ticket-total-box span {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ticket-price {
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  color: var(--primary) !important;
+  margin-top: 4px;
+}

@@ -1,0 +1,253 @@
+<div class="commandes-page">
+  <div class="page-header">
+    <div>
+      <h1>Commandes du Restaurant</h1>
+      <p class="subtitle">Suivi en direct de la cuisine et de la caisse</p>
+    </div>
+
+    <button (click)="ouvrirModal()" class="btn btn-primary">
+      <i class='bx bx-plus'></i>
+      <span>Nouvelle Commande</span>
+    </button>
+  </div>
+
+  <!-- Barre de filtres par statut -->
+  <div class="filters-bar">
+    <button (click)="filtrerParStatut('tous')" class="cat-chip" [class.active]="statutFiltre === 'tous'">
+      Toutes ({{ commandes.length }})
+    </button>
+    <button (click)="filtrerParStatut('en_attente')" class="cat-chip" [class.active]="statutFiltre === 'en_attente'">
+      ⏳ En attente
+    </button>
+    <button (click)="filtrerParStatut('en_cours')" class="cat-chip" [class.active]="statutFiltre === 'en_cours'">
+      👨‍🍳 En cuisine
+    </button>
+    <button (click)="filtrerParStatut('terminée')" class="cat-chip" [class.active]="statutFiltre === 'terminée'">
+      ✅ Terminées
+    </button>
+    <button (click)="filtrerParStatut('annulée')" class="cat-chip" [class.active]="statutFiltre === 'annulée'">
+      ❌ Annulées
+    </button>
+  </div>
+
+  <div *ngIf="chargement" class="loading-state">
+    <i class='bx bx-loader-alt bx-spin'></i>
+    <span>Chargement des commandes...</span>
+  </div>
+
+  <div *ngIf="!chargement && commandesFiltrees.length === 0" class="empty-state">
+    <i class='bx bx-notepad'></i>
+    <p>Aucune commande dans cette section.</p>
+  </div>
+
+  <div *ngIf="!chargement && commandesFiltrees.length > 0" class="commandes-grid">
+    <div *ngFor="let commande of commandesFiltrees" class="commande-card">
+      <div class="commande-header">
+        <div>
+          <span class="commande-id">Commande #{{ commande._id.substring(commande._id.length - 6) }}</span>
+          <span class="commande-date">{{ commande.date_commande | date:'short' }}</span>
+        </div>
+        <span class="badge {{ getBadgeClass(commande.status) }}">
+          {{ commande.status }}
+        </span>
+      </div>
+
+      <div class="commande-client">
+        <i class='bx bx-user'></i>
+        <span>Client : <strong>{{ commande.id_client?.nom || 'Client direct' }}</strong></span>
+      </div>
+
+      <div class="commande-items">
+        <div *ngFor="let item of commande.plat" class="item-row">
+          <span class="item-qty">{{ item.quantite }}x</span>
+          <span class="item-name">{{ item.id_plat?.nom || 'Plat' }}</span>
+          <span class="item-price">{{ (item.prixunitaire * item.quantite) | number }} GNF</span>
+        </div>
+      </div>
+
+      <div class="commande-total-row">
+        <span>Total</span>
+        <span class="total-amount">{{ commande.total | number }} GNF</span>
+      </div>
+
+      <!-- Boutons d'action pour le personnel -->
+      <div class="commande-actions">
+        <!-- Passer en cuisine -->
+        <button 
+          *ngIf="commande.status === 'en_attente'" 
+          (click)="changerStatut(commande._id, 'en_cours')" 
+          class="btn btn-sm btn-primary">
+          <i class='bx bx-dish'></i> Cuisine
+        </button>
+
+        <!-- Marquer Prête -->
+        <button 
+          *ngIf="commande.status === 'en_cours'" 
+          (click)="changerStatut(commande._id, 'terminée')" 
+          class="btn btn-sm btn-primary" style="background-color: var(--success);">
+          <i class='bx bx-check'></i> Prête
+        </button>
+
+        <!-- Bouton ENCAISSER / FACTURER -->
+        <button 
+          *ngIf="commande.status !== 'annulée'" 
+          (click)="ouvrirModalEncaissement(commande, $event)" 
+          class="btn btn-sm btn-outline" style="color: var(--success); border-color: var(--success);"
+          title="Émettre la facture et encaisser">
+          <i class='bx bx-wallet'></i> Encaisser
+        </button>
+
+        <!-- Annuler -->
+        <button 
+          *ngIf="commande.status !== 'annulée'" 
+          (click)="changerStatut(commande._id, 'annulée')" 
+          class="btn btn-sm btn-danger">
+          Annuler
+        </button>
+
+        <!-- Supprimer définitivement (Admin) -->
+        <button 
+          *ngIf="authService.estAdmin()" 
+          (click)="supprimerCommande(commande._id, $event)" 
+          class="btn-icon-danger" 
+          title="Supprimer définitivement cette commande">
+          <i class='bx bx-trash'></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE NOUVELLE COMMANDE -->
+  <div class="modal-overlay" *ngIf="modalOuverte" (click)="fermerModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Nouvelle Commande</h2>
+        <button class="modal-close" (click)="fermerModal()">&times;</button>
+      </div>
+
+      <div class="alert-error" *ngIf="messageErreur">
+        <i class='bx bx-error-circle'></i>
+        <span>{{ messageErreur }}</span>
+      </div>
+
+      <form (ngSubmit)="enregistrerCommande()">
+        <div class="form-group">
+          <label class="form-label">Client *</label>
+          <select class="form-control" [(ngModel)]="nouvelleCommande.id_client" name="id_client" required>
+            <option *ngFor="let client of clients" [value]="client._id">
+              {{ client.nom }} {{ client.prenom }} ({{ client.telephone || 'Sans tél' }})
+            </option>
+          </select>
+        </div>
+
+        <div class="panier-section">
+          <label class="form-label">Ajouter des plats</label>
+          <div class="ajouter-plat-row">
+            <select class="form-control" [(ngModel)]="nouvelleCommande.id_plat_selectionne" name="platSelect">
+              <option *ngFor="let plat of platsDisponibles" [value]="plat._id">
+                {{ plat.nom }} - {{ plat.prix | number }} GNF
+              </option>
+            </select>
+            <input type="number" class="form-control qty-input" [(ngModel)]="nouvelleCommande.quantite" name="qty" min="1">
+            <button type="button" class="btn btn-secondary" (click)="ajouterAuPanier()">Ajouter</button>
+          </div>
+
+          <div class="panier-table" *ngIf="articlesPanier.length > 0">
+            <div *ngFor="let item of articlesPanier; let i = index" class="panier-item">
+              <span>{{ item.quantite }}x {{ item.plat.nom }}</span>
+              <span>{{ item.quantite * item.prixunitaire | number }} GNF</span>
+              <button type="button" class="btn-remove" (click)="retirerDuPanier(i)">&times;</button>
+            </div>
+            <div class="panier-total">
+              <strong>Total :</strong>
+              <span class="total-badge">{{ getTotalPanier() | number }} GNF</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="fermerModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="enregistrementEnCours">
+            <span *ngIf="!enregistrementEnCours">Valider la commande</span>
+            <span *ngIf="enregistrementEnCours"><i class='bx bx-loader-alt bx-spin'></i> Enregistrement...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODALE ENCAISSEMENT / FACTURE -->
+  <div class="modal-overlay" *ngIf="modalEncaissementOuverte" (click)="fermerModalEncaissement()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Encaisser la commande</h2>
+        <button class="modal-close" (click)="fermerModalEncaissement()">&times;</button>
+      </div>
+
+      <div class="alert-error" *ngIf="messageErreurEncaissement">
+        <i class='bx bx-error-circle'></i>
+        <span>{{ messageErreurEncaissement }}</span>
+      </div>
+
+      <div *ngIf="commandeAEncaisser" class="encaissement-details">
+        <div class="encaissement-summary">
+          <p><strong>Commande :</strong> #{{ commandeAEncaisser._id.substring(commandeAEncaisser._id.length - 6) }}</p>
+          <p><strong>Client :</strong> {{ commandeAEncaisser.id_client?.nom || 'Client direct' }}</p>
+          <div class="total-a-payer">
+            <span>Montant à régler :</span>
+            <span class="montant-grand">{{ commandeAEncaisser.total | number }} GNF</span>
+          </div>
+        </div>
+
+        <form (ngSubmit)="validerEncaissement()">
+          <div class="form-group">
+            <label class="form-label">Mode de paiement *</label>
+            <select class="form-control" [(ngModel)]="modePaiementChoisi" name="modePaiement" required>
+              <option value="Espèces">💵 Espèces (Cash)</option>
+              <option value="Orange Money">📱 Orange Money</option>
+              <option value="Mobile Money">📱 Mobile Money</option>
+              <option value="Carte Bancaire">💳 Carte Bancaire</option>
+            </select>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="fermerModalEncaissement()">Annuler</button>
+            <button type="submit" class="btn btn-primary" [disabled]="encaissementEnCours">
+              <span *ngIf="!encaissementEnCours"><i class='bx bx-check-circle'></i> Confirmer l'encaissement</span>
+              <span *ngIf="encaissementEnCours"><i class='bx bx-loader-alt bx-spin'></i> Traitement...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE TICKET / REÇU APRÈS ENCAISSEMENT -->
+  <div class="modal-overlay" *ngIf="ticketFactureAffichee" (click)="fermerTicket()">
+    <div class="modal-content ticket-receipt" (click)="$event.stopPropagation()">
+      <div class="ticket-header">
+        <h2>GourmetResto</h2>
+        <p>Reçu de Paiement & Facture</p>
+        <span class="ticket-num">Réf Facture: #{{ ticketFactureAffichee._id }}</span>
+      </div>
+
+      <div class="ticket-info">
+        <p><strong>Date :</strong> {{ ticketFactureAffichee.date_facture || ticketFactureAffichee.createdAt | date:'medium' }}</p>
+        <p><strong>Règlement :</strong> {{ ticketFactureAffichee.mode_paiement }}</p>
+        <p><strong>Statut :</strong> Payée</p>
+      </div>
+
+      <div class="ticket-total-box">
+        <span>TOTAL REÇU</span>
+        <span class="ticket-price">{{ ticketFactureAffichee.montant_total | number }} GNF</span>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="fermerTicket()">Terminer</button>
+        <button class="btn btn-primary" (click)="imprimerTicket()">
+          <i class='bx bx-printer'></i> Imprimer le ticket
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

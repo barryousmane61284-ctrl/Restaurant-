@@ -1,0 +1,164 @@
+<div class="utilisateurs-page">
+  <div class="page-header">
+    <div>
+      <h1>Équipe & Utilisateurs</h1>
+      <p class="subtitle">Gérez les accès de votre restaurant (Admins, Serveurs, Caissiers)</p>
+    </div>
+
+    <button *ngIf="authService.estAdmin()" (click)="ouvrirModal()" class="btn btn-primary">
+      <i class='bx bx-user-plus'></i>
+      <span>Nouvel Employé</span>
+    </button>
+  </div>
+
+  <div *ngIf="chargement" class="loading-state">
+    <i class='bx bx-loader-alt bx-spin'></i>
+    <span>Chargement des utilisateurs...</span>
+  </div>
+
+  <div *ngIf="!chargement && utilisateurs.length === 0" class="empty-state">
+    <i class='bx bx-group'></i>
+    <p>Aucun employé enregistré.</p>
+  </div>
+
+  <div *ngIf="!chargement && utilisateurs.length > 0" class="card table-card">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Employé</th>
+            <th>Email de connexion</th>
+            <th>Téléphone</th>
+            <th>Rôle</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of utilisateurs">
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar-sm" *ngIf="!u.image || !userService.getImageUrl(u.image)">
+                  <i class='bx bxs-user'></i>
+                </div>
+                <img 
+                  *ngIf="u.image && userService.getImageUrl(u.image)" 
+                  [src]="userService.getImageUrl(u.image)" 
+                  alt="{{ u.prenom }}" 
+                  class="user-avatar-img">
+                <strong>{{ u.prenom }} {{ u.nom }}</strong>
+              </div>
+            </td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.telephone || 'Non renseigné' }}</td>
+            <td>
+              <span class="badge {{ getRoleBadgeClass(u.role) }}">
+                {{ u.role }}
+              </span>
+            </td>
+            <td>
+              <div class="table-actions" style="display: flex; gap: 8px; align-items: center;">
+                <button 
+                  *ngIf="authService.estAdmin()" 
+                  (click)="ouvrirModalEdition(u, $event)" 
+                  class="btn btn-sm btn-outline" 
+                  title="Modifier cet employé">
+                  <i class='bx bx-edit'></i> Modifier
+                </button>
+                <button 
+                  *ngIf="authService.estAdmin()" 
+                  (click)="supprimerUtilisateur(u._id || u.id, u.email)" 
+                  class="btn-icon-danger" 
+                  title="Supprimer ce compte">
+                  <i class='bx bx-trash'></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODALE UTILISATEUR -->
+  <div class="modal-overlay" *ngIf="modalOuverte" (click)="fermerModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ modeEdition ? "Modifier l'employé" : "Créer un nouvel employé" }}</h2>
+        <button class="modal-close" (click)="fermerModal()">&times;</button>
+      </div>
+
+      <div class="alert-error" *ngIf="messageErreur">
+        <i class='bx bx-error-circle'></i>
+        <span>{{ messageErreur }}</span>
+      </div>
+
+      <form (ngSubmit)="enregistrerUtilisateur()">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Prénom *</label>
+            <input type="text" class="form-control" [(ngModel)]="nouvelUtilisateur.prenom" name="prenom" placeholder="Ex: Mamadou" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nom *</label>
+            <input type="text" class="form-control" [(ngModel)]="nouvelUtilisateur.nom" name="nom" placeholder="Ex: Diallo" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Adresse Email *</label>
+          <input type="email" class="form-control" [(ngModel)]="nouvelUtilisateur.email" name="email" placeholder="serveur@restaurant.com" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Rôle au restaurant *</label>
+            <select class="form-control" [(ngModel)]="nouvelUtilisateur.role" name="role" required>
+              <option value="serveur">🍽️ Serveur (Prise de commande)</option>
+              <option value="caissier">💳 Caissier (Facturation & Encaiss.)</option>
+              <option value="admin">⭐ Administrateur (Accès total)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Téléphone</label>
+            <input type="text" class="form-control" [(ngModel)]="nouvelUtilisateur.telephone" name="telephone" placeholder="620000000">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Photo de profil (Optionnel)</label>
+          <input type="file" class="form-control" (change)="onFichierSelectionne($event)" accept="image/*">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ modeEdition ? 'Nouveau mot de passe (Laisser vide pour ne pas changer)' : 'Mot de passe provisoire *' }}</label>
+          <div class="input-password-wrapper">
+            <input 
+              [type]="motDePasseVisible ? 'text' : 'password'" 
+              class="form-control" 
+              [(ngModel)]="nouvelUtilisateur.password" 
+              name="password" 
+              placeholder="{{ modeEdition ? 'Laisser vide pour conserver l\'actuel' : 'Minimum 6 caractères' }}" 
+              [required]="!modeEdition" 
+              minlength="6">
+            <button 
+              type="button" 
+              class="btn-eye-toggle" 
+              (click)="basculerVisibiliteMotDePasse()" 
+              tabindex="-1"
+              title="{{ motDePasseVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe' }}">
+              <i class='bx' [class.bx-show]="!motDePasseVisible" [class.bx-hide]="motDePasseVisible"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="fermerModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="enregistrementEnCours">
+            <span *ngIf="!enregistrementEnCours">{{ modeEdition ? 'Mettre à jour' : 'Créer le compte' }}</span>
+            <span *ngIf="enregistrementEnCours"><i class='bx bx-loader-alt bx-spin'></i> {{ modeEdition ? 'Mise à jour...' : 'Création...' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

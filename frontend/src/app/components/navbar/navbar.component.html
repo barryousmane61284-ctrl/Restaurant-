@@ -1,0 +1,32 @@
+<!-- ================================================================= -->
+<!-- BARRE DE NAVIGATION EN TÊTE DE PAGE -->
+<!-- ================================================================= -->
+<header class="navbar">
+  <!-- 1. Logo et nom du restaurant -->
+  <div class="navbar-brand">
+    <i class='bx bxs-restaurant brand-icon'></i>
+    <span class="brand-title">Ousmane<span>Resto</span></span>
+  </div>
+
+  <!-- 2. Partie droite : Profil de l'employé et bouton de sortie -->
+  <div class="navbar-actions">
+    <!-- Affiché seulement si quelqu'un est connecté (*ngIf="utilisateur") -->
+    <div class="user-profile" *ngIf="utilisateur">
+      <!-- Icône ronde d'avatar -->
+      <div class="avatar">
+        <i class='bx bxs-user'></i>
+      </div>
+      <!-- Nom et Rôle (Admin, Serveur ou Caissier) -->
+      <div class="user-info">
+        <span class="user-name">{{ utilisateur.prenom }} {{ utilisateur.nom }}</span>
+        <span class="user-role">{{ utilisateur.role }}</span>
+      </div>
+    </div>
+
+    <!-- Bouton pour se déconnecter -->
+    <button (click)="deconnexion()" class="btn-logout" title="Se déconnecter">
+      <i class='bx bx-log-out'></i>
+      <span>Déconnexion</span>
+    </button>
+  </div>
+</header>

@@ -1,0 +1,52 @@
+<!-- ================================================================= -->
+<!-- MENU LATÉRAL DE NAVIGATION (À GAUCHE) -->
+<!-- ================================================================= -->
+<aside class="sidebar">
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">MENU PRINCIPAL</div>
+
+    <!-- Lien 1 : Vers le Tableau de bord -->
+    <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+      <i class='bx bxs-dashboard'></i>
+      <span>Tableau de bord</span>
+    </a>
+
+    <!-- Lien 2 : Vers la Carte et les Plats -->
+    <a routerLink="/plats" routerLinkActive="active" class="nav-item">
+      <i class='bx bxs-food-menu'></i>
+      <span>Carte & Plats</span>
+    </a>
+
+    <!-- Lien 3 : Vers les Commandes -->
+    <a routerLink="/commandes" routerLinkActive="active" class="nav-item">
+      <i class='bx bxs-receipt'></i>
+      <span>Commandes</span>
+    </a>
+
+    <!-- Lien 4 : Vers les Factures -->
+    <a routerLink="/factures" routerLinkActive="active" class="nav-item">
+      <i class='bx bxs-wallet'></i>
+      <span>Factures</span>
+    </a>
+
+    <!-- Lien 5 : Vers les Clients -->
+    <a routerLink="/clients" routerLinkActive="active" class="nav-item">
+      <i class='bx bxs-user-detail'></i>
+      <span>Clients</span>
+    </a>
+
+    <!-- Lien 6 : Vers l'Équipe (Admin uniquement) -->
+    <a *ngIf="estAdmin" routerLink="/utilisateurs" routerLinkActive="active" class="nav-item">
+      <i class='bx bxs-group'></i>
+      <span>Équipe</span>
+    </a>
+  </nav>
+
+  <!-- Bas du menu : Indication de connexion à Express -->
+  <div class="sidebar-footer">
+    <div class="footer-badge">
+      <i class='bx bx-check-shield'></i>
+      <span>API Connectée (:8000)</span>
+    </div>
+  </div>
+</aside>
