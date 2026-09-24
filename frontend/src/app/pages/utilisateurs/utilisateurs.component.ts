@@ -10,6 +10,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
@@ -26,6 +27,7 @@ export class UtilisateursComponent implements OnInit {
   userService = inject(UserService);
   authService = inject(AuthService);
   private toastService = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
   utilisateurs: any[] = [];
   chargement: boolean = true;
@@ -50,6 +52,28 @@ export class UtilisateursComponent implements OnInit {
 
   ngOnInit(): void {
     this.chargerUtilisateurs();
+    this.route.queryParams.subscribe(params => {
+      if (params['id']) {
+        this.verifierEtOuvrirUtilisateur(params['id']);
+      }
+    });
+  }
+
+  private verifierEtOuvrirUtilisateur(targetId: string): void {
+    const u = this.utilisateurs.find(usr => (usr._id || usr.id) === targetId);
+    if (u) {
+      this.ouvrirModalEdition(u);
+    } else {
+      this.userService.getUserById(targetId).subscribe({
+        next: (res: any) => {
+          const userObj = res.user || res.data || res;
+          if (userObj && (userObj._id || userObj.id)) {
+            this.ouvrirModalEdition(userObj);
+          }
+        },
+        error: () => {}
+      });
+    }
   }
 
   chargerUtilisateurs(): void {
@@ -57,6 +81,8 @@ export class UtilisateursComponent implements OnInit {
     if (cache && cache.length > 0) {
       this.utilisateurs = cache;
       this.chargement = false;
+      const targetId = this.route.snapshot.queryParams['id'];
+      if (targetId) this.verifierEtOuvrirUtilisateur(targetId);
     } else {
       this.chargement = true;
     }
@@ -65,6 +91,8 @@ export class UtilisateursComponent implements OnInit {
       next: (res) => {
         this.utilisateurs = res.data || res.users || (Array.isArray(res) ? res : []);
         this.chargement = false;
+        const targetId = this.route.snapshot.queryParams['id'];
+        if (targetId) this.verifierEtOuvrirUtilisateur(targetId);
       },
       error: (err) => {
         console.error('Erreur chargement utilisateurs:', err);

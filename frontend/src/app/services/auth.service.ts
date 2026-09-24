@@ -8,7 +8,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ReponseConnexion, Utilisateur } from '../models/user.model';
 import { ToastService } from './toast.service';
@@ -24,6 +24,19 @@ export class AuthService {
   // Adresse complète du module d'authentification Express
   private apiUrl = `${environment.apiUrl}/authentification`;
 
+  // Suivi réactif de l'utilisateur connecté
+  private utilisateurSubject = new BehaviorSubject<Utilisateur | null>(this.lireUtilisateurStocke());
+  public utilisateur$ = this.utilisateurSubject.asObservable();
+
+  private lireUtilisateurStocke(): Utilisateur | null {
+    const userJson = localStorage.getItem('utilisateur');
+    try {
+      return userJson ? JSON.parse(userJson) : null;
+    } catch {
+      return null;
+    }
+  }
+
   // --------------------------------------------------------------------------
   // 1. CONNEXION D'UN UTILISATEUR (ADMIN / SERVEUR / CAISSIER)
   // --------------------------------------------------------------------------
@@ -36,6 +49,7 @@ export class AuthService {
         localStorage.setItem('access_token', reponse.accessToken);
         localStorage.setItem('refresh_token', reponse.refreshToken);
         localStorage.setItem('utilisateur', JSON.stringify(reponse.utilisateur));
+        this.utilisateurSubject.next(reponse.utilisateur);
       })
     );
   }
@@ -50,6 +64,7 @@ export class AuthService {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('utilisateur');
+    this.utilisateurSubject.next(null);
     this.router.navigate(['/login']);
     this.toastService.info(`Vous avez été déconnecté avec succès. À bientôt${prenom} !`, 'Déconnexion');
   }
@@ -86,5 +101,34 @@ export class AuthService {
   // Appelle GET /authentification/moi pour obtenir les données fraîches
   getMonProfil(): Observable<Utilisateur> {
     return this.http.get<Utilisateur>(`${this.apiUrl}/moi`);
+  }
+
+  // --------------------------------------------------------------------------
+  // 7. METTRE À JOUR L'UTILISATEUR CONNECTÉ LOCALEMENT (SESSION & SIGNAL)
+  // --------------------------------------------------------------------------
+  mettreAJourUtilisateurConnecte(nouvelUtilisateur: Utilisateur): void {
+    const userActuel = this.getUtilisateurConnecte() || {} as Utilisateur;
+    const misAJour: Utilisateur = {
+      ...userActuel,
+      ...nouvelUtilisateur,
+      // Conserver l'ID s'il est sous id ou _id
+      id: nouvelUtilisateur.id || (nouvelUtilisateur as any)._id || userActuel.id
+    };
+    localStorage.setItem('utilisateur', JSON.stringify(misAJour));
+    this.utilisateurSubject.next(misAJour);
+  }
+
+  // --------------------------------------------------------------------------
+  // 8. RAFRAÎCHIR LE TOKEN D'ACCÈS (SILENT REFRESH)
+  // --------------------------------------------------------------------------
+  rafraichirToken(): Observable<{ accessToken: string }> {
+    const refreshToken = localStorage.getItem('refresh_token');
+    return this.http.post<{ accessToken: string }>(`${this.apiUrl}/rafraichir`, { refreshToken }).pipe(
+      tap((res) => {
+        if (res?.accessToken) {
+          localStorage.setItem('access_token', res.accessToken);
+        }
+      })
+    );
   }
 }

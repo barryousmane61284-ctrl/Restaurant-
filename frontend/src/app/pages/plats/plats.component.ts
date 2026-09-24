@@ -11,10 +11,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { PlatService } from '../../services/plat.service';
 import { CategoriService } from '../../services/categori.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 import { Plat } from '../../models/plat.model';
 import { Categori } from '../../models/categori.model';
 
@@ -28,8 +30,10 @@ import { Categori } from '../../models/categori.model';
 export class PlatsComponent implements OnInit {
   platService = inject(PlatService);
   private categoriService = inject(CategoriService);
+  private confirmationService = inject(ConfirmationService);
   authService = inject(AuthService);
   private toastService = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
   // Listes
   plats: Plat[] = [];
@@ -73,6 +77,28 @@ export class PlatsComponent implements OnInit {
   ngOnInit(): void {
     this.chargerCategories();
     this.chargerPlats();
+    this.route.queryParams.subscribe(params => {
+      if (params['id']) {
+        this.verifierEtOuvrirPlat(params['id']);
+      }
+    });
+  }
+
+  private verifierEtOuvrirPlat(targetId: string): void {
+    const platTrouve = this.plats.find(p => p._id === targetId);
+    if (platTrouve) {
+      this.ouvrirDetailPlat(platTrouve);
+    } else {
+      this.platService.getPlatParId(targetId).subscribe({
+        next: (res: any) => {
+          const plat = res.plat || res.data || res;
+          if (plat && plat._id) {
+            this.ouvrirDetailPlat(plat);
+          }
+        },
+        error: () => {}
+      });
+    }
   }
 
   chargerCategories(): void {
@@ -94,6 +120,8 @@ export class PlatsComponent implements OnInit {
       this.plats = cache;
       this.filtrerPlats();
       this.chargement = false;
+      const targetId = this.route.snapshot.queryParams['id'];
+      if (targetId) this.verifierEtOuvrirPlat(targetId);
     } else {
       this.chargement = true;
     }
@@ -103,6 +131,8 @@ export class PlatsComponent implements OnInit {
         this.plats = res.plats || res.data || (Array.isArray(res) ? res : []);
         this.filtrerPlats();
         this.chargement = false;
+        const targetId = this.route.snapshot.queryParams['id'];
+        if (targetId) this.verifierEtOuvrirPlat(targetId);
       },
       error: (err) => {
         console.error('Erreur chargement plats:', err);
@@ -240,23 +270,31 @@ export class PlatsComponent implements OnInit {
 
   supprimerPlat(id: string, event?: Event): void {
     if (event) event.stopPropagation();
-    if (confirm('Êtes-vous sûr de vouloir supprimer définitivement ce plat ?')) {
-      this.platService.supprimerPlat(id).subscribe({
-        next: () => {
-          // Mise à jour immédiate de la liste locale
-          this.plats = this.plats.filter(p => p._id !== id);
-          this.filtrerPlats();
-          if (this.platSelectionne?._id === id) {
-            this.fermerDetailPlat();
+    this.confirmationService.confirmer({
+      titre: 'Supprimer le plat',
+      message: 'Êtes-vous sûr de vouloir supprimer définitivement ce plat ?',
+      texteConfirmer: 'Supprimer',
+      texteAnnuler: 'Annuler',
+      type: 'danger'
+    }).subscribe(confirme => {
+      if (confirme) {
+        this.platService.supprimerPlat(id).subscribe({
+          next: () => {
+            // Mise à jour immédiate de la liste locale
+            this.plats = this.plats.filter(p => p._id !== id);
+            this.filtrerPlats();
+            if (this.platSelectionne?._id === id) {
+              this.fermerDetailPlat();
+            }
+            this.toastService.success('Le plat a été supprimé avec succès !', 'Plat supprimé');
+          },
+          error: (err: any) => {
+            const msg = err?.error?.message || 'Erreur lors de la suppression.';
+            this.toastService.error(msg, 'Erreur de suppression');
           }
-          this.toastService.success('Le plat a été supprimé avec succès !', 'Plat supprimé');
-        },
-        error: (err: any) => {
-          const msg = err?.error?.message || 'Erreur lors de la suppression.';
-          this.toastService.error(msg, 'Erreur de suppression');
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
   // --- GESTION DES CATÉGORIES ---

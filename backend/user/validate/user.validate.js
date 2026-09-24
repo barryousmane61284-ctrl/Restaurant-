@@ -16,7 +16,7 @@ export const userUpdateSchema = yup.object().shape({
     prenom: yup.string(),
     email: yup.string().email("L'email est invalide"),
     telephone: yup.string(),
-    role: yup.string().oneOf(["serveur", "caissier"])
+    role: yup.string().oneOf(["serveur", "caissier", "admin"])
 });
 
 // Schéma pour le CHANGEMENT DE MOT DE PASSE

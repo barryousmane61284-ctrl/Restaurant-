@@ -11,4 +11,12 @@ import { AppComponent } from './app/app.component';
 
 // On démarre l'application Angular dans le navigateur
 bootstrapApplication(AppComponent, appConfig)
+  .then(() => {
+    // Enregistrement du Service Worker PWA pour le support hors-ligne
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('GourmetResto PWA : Service Worker actif'))
+        .catch((err) => console.log('Service Worker non enregistré :', err));
+    }
+  })
   .catch((err) => console.error('Erreur au démarrage de l\'application Angular :', err));

@@ -8,6 +8,7 @@ import routecommande from './commande/route/commande.route.js';
 import routeuser from './user/route/user.route.js';
 import routefacture from './facture/route/facture.route.js';
 import routeauth from './authentification/route/auth.route.js';
+import routerecherche from './recherche/route/recherche.route.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -24,6 +25,8 @@ import morgan from 'morgan';
  serveur.use(express.json()); //pour les requette json
  serveur.use(express.urlencoded({ extended: true}));
 
+import errorHandler from './commun/middleware/error.middleware.js';
+
 // Rendre le dossier "uploads" accessible publiquement pour afficher les images uploadées
 serveur.use('/uploads', express.static('uploads'));
 
@@ -35,5 +38,9 @@ serveur.use('/commande',routecommande);
 serveur.use('/user',routeuser);
 serveur.use('/facture',routefacture);
 serveur.use('/authentification',routeauth);
+serveur.use('/recherche',routerecherche);
+
+// Middleware global de gestion des erreurs (doit être après toutes les routes)
+serveur.use(errorHandler);
 
 export default serveur;

@@ -1,5 +1,5 @@
 <!-- ================================================================= -->
-<!-- BARRE DE NAVIGATION EN TÊTE DE PAGE -->
+<!-- BARRE DE NAVIGATION EN TÊTE DE PAGE AVEC RECHERCHE GLOBALE -->
 <!-- ================================================================= -->
 <header class="navbar">
   <!-- 1. Logo et nom du restaurant -->
@@ -8,19 +8,145 @@
     <span class="brand-title">Ousmane<span>Resto</span></span>
   </div>
 
-  <!-- 2. Partie droite : Profil de l'employé et bouton de sortie -->
+  <!-- 2. Barre de Recherche Globale -->
+  <div class="global-search-container" *ngIf="utilisateur">
+    <div class="search-input-wrapper">
+      <i class='bx bx-search search-icon'></i>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Rechercher (plat, client, commande, facture...)"
+        [(ngModel)]="termeRecherche" 
+        (input)="onSearchInput()"
+        (focus)="afficherResultats = true"
+        (blur)="masquerResultatsAvecDelai()"
+      />
+      <button *ngIf="termeRecherche" class="btn-clear" (click)="effacerRecherche()" title="Effacer">
+        <i class='bx bx-x'></i>
+      </button>
+      <div *ngIf="chargementRecherche" class="search-spinner">
+        <i class='bx bx-loader-alt bx-spin'></i>
+      </div>
+    </div>
+
+    <!-- Dropdown Menu des Résultats de recherche -->
+    <div class="search-dropdown" *ngIf="afficherResultats && termeRecherche.trim().length >= 2">
+      <!-- Aucun résultat trouvé -->
+      <div *ngIf="estVide(resultats) && !chargementRecherche" class="search-no-results">
+        <i class='bx bx-search-alt'></i>
+        <span>Aucun résultat trouvé pour « <strong>{{ termeRecherche }}</strong> »</span>
+      </div>
+
+      <!-- Section PLATS -->
+      <div *ngIf="resultats && resultats.plats && resultats.plats.length" class="search-section">
+        <div class="search-section-title">
+          <i class='bx bx-dish'></i> Plats ({{ resultats.plats.length }})
+        </div>
+        <div 
+          *ngFor="let p of resultats.plats" 
+          class="search-item" 
+          (mousedown)="naviguerVers('/plats', p._id)">
+          <div class="search-item-info">
+            <span class="item-title">{{ p.nom }}</span>
+            <span class="item-sub">{{ p.prix }} FCFA • {{ p.categori?.nom || 'Catégorie' }}</span>
+          </div>
+          <span class="badge badge-plat">Plat</span>
+        </div>
+      </div>
+
+      <!-- Section CLIENTS -->
+      <div *ngIf="resultats && resultats.clients && resultats.clients.length" class="search-section">
+        <div class="search-section-title">
+          <i class='bx bx-user'></i> Clients ({{ resultats.clients.length }})
+        </div>
+        <div 
+          *ngFor="let c of resultats.clients" 
+          class="search-item" 
+          (mousedown)="naviguerVers('/clients', c._id)">
+          <div class="search-item-info">
+            <span class="item-title">{{ c.prenom }} {{ c.nom }}</span>
+            <span class="item-sub">{{ c.telephone || c.email || c.matricule }}</span>
+          </div>
+          <span class="badge badge-client">Client</span>
+        </div>
+      </div>
+
+      <!-- Section COMMANDES -->
+      <div *ngIf="resultats && resultats.commandes && resultats.commandes.length" class="search-section">
+        <div class="search-section-title">
+          <i class='bx bx-cart'></i> Commandes ({{ resultats.commandes.length }})
+        </div>
+        <div 
+          *ngFor="let cmd of resultats.commandes" 
+          class="search-item" 
+          (mousedown)="naviguerVers('/commandes', cmd._id)">
+          <div class="search-item-info">
+            <span class="item-title">Commande #{{ cmd._id.substring(cmd._id.length - 6) }}</span>
+            <span class="item-sub">Total: {{ cmd.total }} FCFA • {{ cmd.id_client?.nom || 'Client' }}</span>
+          </div>
+          <span class="badge badge-commande">{{ cmd.status }}</span>
+        </div>
+      </div>
+
+      <!-- Section FACTURES -->
+      <div *ngIf="resultats && resultats.factures && resultats.factures.length" class="search-section">
+        <div class="search-section-title">
+          <i class='bx bx-receipt'></i> Factures ({{ resultats.factures.length }})
+        </div>
+        <div 
+          *ngFor="let f of resultats.factures" 
+          class="search-item" 
+          (mousedown)="naviguerVers('/factures', f._id)">
+          <div class="search-item-info">
+            <span class="item-title">Facture #{{ f._id.substring(f._id.length - 6) }}</span>
+            <span class="item-sub">Montant: {{ f.montant_total }} FCFA • {{ f.statut }}</span>
+          </div>
+          <span class="badge badge-facture">Facture</span>
+        </div>
+      </div>
+
+      <!-- Section UTILISATEURS -->
+      <div *ngIf="resultats && resultats.utilisateurs && resultats.utilisateurs.length" class="search-section">
+        <div class="search-section-title">
+          <i class='bx bx-user-pin'></i> Utilisateurs ({{ resultats.utilisateurs.length }})
+        </div>
+        <div 
+          *ngFor="let u of resultats.utilisateurs" 
+          class="search-item" 
+          (mousedown)="naviguerVers('/utilisateurs', u._id)">
+          <div class="search-item-info">
+            <span class="item-title">{{ u.prenom }} {{ u.nom }}</span>
+            <span class="item-sub">{{ u.role }} • {{ u.email }}</span>
+          </div>
+          <span class="badge badge-user">{{ u.role }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3. Partie droite : Profil de l'employé et bouton de sortie -->
   <div class="navbar-actions">
     <!-- Affiché seulement si quelqu'un est connecté (*ngIf="utilisateur") -->
-    <div class="user-profile" *ngIf="utilisateur">
-      <!-- Icône ronde d'avatar -->
+    <div 
+      class="user-profile clickable" 
+      *ngIf="utilisateur" 
+      (click)="ouvrirProfil()" 
+      title="Cliquez pour afficher votre profil et modifier votre mot de passe">
+      <!-- Icône ronde d'avatar ou photo personnalisée -->
       <div class="avatar">
-        <i class='bx bxs-user'></i>
+        <img *ngIf="urlPhoto; else defaultAvatar" [src]="urlPhoto" alt="Avatar" class="avatar-img" />
+        <ng-template #defaultAvatar>
+          <i class='bx bxs-user'></i>
+        </ng-template>
       </div>
       <!-- Nom et Rôle (Admin, Serveur ou Caissier) -->
       <div class="user-info">
         <span class="user-name">{{ utilisateur.prenom }} {{ utilisateur.nom }}</span>
         <span class="user-role">{{ utilisateur.role }}</span>
       </div>
+      <!-- Petite icône indiquant que le profil est interactif -->
+      <i class='bx bx-cog profile-settings-icon' title="Paramètres du compte"></i>
     </div>
 
     <!-- Bouton pour se déconnecter -->
@@ -30,3 +156,9 @@
     </button>
   </div>
 </header>
+
+<!-- Modale de modification du profil et mot de passe -->
+<app-profile-modal 
+  *ngIf="modalProfilOuverte" 
+  (fermer)="fermerProfil()">
+</app-profile-modal>

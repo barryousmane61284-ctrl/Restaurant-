@@ -12,6 +12,7 @@ import { filter } from 'rxjs';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { ToastComponent } from './components/toast/toast.component';
+import { ConfirmationModalComponent } from './components/confirmation-modal/confirmation-modal.component';
 import { AuthService } from './services/auth.service';
 
 @Component({
@@ -22,7 +23,8 @@ import { AuthService } from './services/auth.service';
     RouterOutlet,
     NavbarComponent,
     SidebarComponent,
-    ToastComponent
+    ToastComponent,
+    ConfirmationModalComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']

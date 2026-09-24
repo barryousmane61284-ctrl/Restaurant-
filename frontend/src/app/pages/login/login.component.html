@@ -12,8 +12,28 @@
       <p>Connectez-vous pour gérer les commandes, plats et factures</p>
     </div>
 
-    <!-- Message d'alerte rouge affiché en cas d'erreur de saisie -->
-    <div class="alert-error" *ngIf="messageErreur">
+    <!-- BANDEAU COMPTE À REBOURS : Affiché en cas de blocage Rate-Limit -->
+    <div class="countdown-card" *ngIf="secondesRestantes > 0">
+      <div class="countdown-icon-box">
+        <i class='bx bx-time-five bx-tada'></i>
+      </div>
+      <div class="countdown-body">
+        <h4>Compte temporairement bloqué</h4>
+        <p>Trop de tentatives échouées. Réessayez dans :</p>
+        <div class="countdown-badge">
+          <span>{{ tempsFormate }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message de déblocage vert -->
+    <div class="alert-success" *ngIf="messageDebloque && secondesRestantes === 0">
+      <i class='bx bx-check-circle'></i>
+      <span>{{ messageDebloque }}</span>
+    </div>
+
+    <!-- Message d'alerte rouge standard (si non bloqué) -->
+    <div class="alert-error" *ngIf="messageErreur && secondesRestantes === 0">
       <i class='bx bx-error-circle'></i>
       <span>{{ messageErreur }}</span>
     </div>
@@ -25,7 +45,6 @@
         <label class="form-label" for="email">Adresse Email</label>
         <div class="input-with-icon">
           <i class='bx bx-envelope'></i>
-          <!-- [(ngModel)] lie directement ce champ à la variable "email" dans le fichier TS -->
           <input 
             type="email" 
             id="email" 
@@ -33,6 +52,7 @@
             placeholder="ex: admin@restaurant.com" 
             [(ngModel)]="email" 
             name="email" 
+            [disabled]="secondesRestantes > 0"
             required>
         </div>
       </div>
@@ -42,7 +62,6 @@
         <label class="form-label" for="motDePasse">Mot de passe</label>
         <div class="input-with-icon">
           <i class='bx bx-lock-alt'></i>
-          <!-- [(ngModel)] lie ce champ à la variable "motDePasse" dans le fichier TS -->
           <input 
             [type]="motDePasseVisible ? 'text' : 'password'" 
             id="motDePasse" 
@@ -50,21 +69,30 @@
             placeholder="••••••••" 
             [(ngModel)]="motDePasse" 
             name="motDePasse" 
+            [disabled]="secondesRestantes > 0"
             required>
           <button 
             type="button" 
             class="btn-eye-toggle" 
             (click)="basculerVisibiliteMotDePasse()" 
             tabindex="-1"
+            [disabled]="secondesRestantes > 0"
             title="{{ motDePasseVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe' }}">
             <i class='bx' [class.bx-show]="!motDePasseVisible" [class.bx-hide]="motDePasseVisible"></i>
           </button>
         </div>
       </div>
 
-      <!-- Bouton de validation : désactivé pendant le chargement -->
-      <button type="submit" class="btn btn-primary btn-block" [disabled]="chargement">
-        <span *ngIf="!chargement">Se connecter</span>
+      <!-- Bouton de validation : désactivé pendant le chargement ou le décompte -->
+      <button 
+        type="submit" 
+        class="btn btn-primary btn-block" 
+        [class.btn-blocked]="secondesRestantes > 0"
+        [disabled]="chargement || secondesRestantes > 0">
+        <span *ngIf="!chargement && secondesRestantes === 0">Se connecter</span>
+        <span *ngIf="secondesRestantes > 0" class="btn-timer-text">
+          <i class='bx bx-lock'></i> Réessayez dans {{ tempsFormate }}
+        </span>
         <span *ngIf="chargement" class="loader-text">
           <i class='bx bx-loader-alt bx-spin'></i> Connexion en cours...
         </span>

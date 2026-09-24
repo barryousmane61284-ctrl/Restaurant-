@@ -1,0 +1,23 @@
+<div class="modal-backdrop" *ngIf="demandeActuelle" (click)="annuler()">
+  <div class="modal-card" [ngClass]="'type-' + (demandeActuelle.type || 'danger')" (click)="$event.stopPropagation()">
+    <div class="modal-icon-wrapper">
+      <span class="modal-icon" *ngIf="demandeActuelle.type === 'danger'">⚠️</span>
+      <span class="modal-icon" *ngIf="demandeActuelle.type === 'warning'">⚡</span>
+      <span class="modal-icon" *ngIf="demandeActuelle.type === 'info'">ℹ️</span>
+    </div>
+
+    <div class="modal-content">
+      <h3 class="modal-title">{{ demandeActuelle.titre }}</h3>
+      <p class="modal-message">{{ demandeActuelle.message }}</p>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" (click)="annuler()">
+        {{ demandeActuelle.texteAnnuler }}
+      </button>
+      <button type="button" class="btn-confirm" (click)="confirmer()">
+        {{ demandeActuelle.texteConfirmer }}
+      </button>
+    </div>
+  </div>
+</div>

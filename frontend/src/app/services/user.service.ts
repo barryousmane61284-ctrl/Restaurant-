@@ -60,7 +60,12 @@ export class UserService {
     return this.http.delete<any>(`${this.apiUrl}/${id}`);
   }
 
-  // 6. Obtenir l'URL de la photo de profil d'un utilisateur
+  // 6. Modifier le mot de passe d'un utilisateur (PUT /user/:id/update-password)
+  updatePassword(id: string, donnees: { ancienPassword: string; nouveauPassword: string; confirmPassword: string }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}/update-password`, donnees);
+  }
+
+  // 7. Obtenir l'URL de la photo de profil d'un utilisateur
   getImageUrl(cheminImage?: string): string | null {
     if (!cheminImage) {
       return null;

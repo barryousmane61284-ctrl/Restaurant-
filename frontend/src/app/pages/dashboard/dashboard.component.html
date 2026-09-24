@@ -69,6 +69,29 @@
     </div>
   </div>
 
+  <!-- Grille des graphiques analytiques (Chart.js) -->
+  <div class="charts-grid" [style.display]="chargement ? 'none' : 'grid'">
+    <!-- Graphique 1 : Chiffre d'affaires récent -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h2><i class='bx bx-line-chart'></i> Ventes & Chiffre d'Affaires</h2>
+      </div>
+      <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+        <canvas #ventesChartCanvas></canvas>
+      </div>
+    </div>
+
+    <!-- Graphique 2 : Répartition des statuts de commande -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h2><i class='bx bx-pie-chart-alt-2'></i> Statut des Commandes</h2>
+      </div>
+      <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+        <canvas #statutChartCanvas></canvas>
+      </div>
+    </div>
+  </div>
+
   <!-- Carte des dernières commandes -->
   <div class="card recent-orders-card">
     <div class="card-header">

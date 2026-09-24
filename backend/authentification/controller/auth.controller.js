@@ -30,6 +30,15 @@ class authcontroller {
             envoyerErreur(res, error);
         }
     }
+
+    static rafraichir = async(req, res) => {
+        try {
+            const refreshToken = req.body.refreshToken || req.headers['x-refresh-token'];
+            res.status(200).json(await authservice.rafraichir(refreshToken));
+        } catch (error) {
+            envoyerErreur(res, error);
+        }
+    }
 }
 
 export default authcontroller;

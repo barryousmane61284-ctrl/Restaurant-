@@ -1,0 +1,244 @@
+<div class="modal-backdrop" (click)="fermerModale()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <!-- En-tête de la modale -->
+    <div class="modal-header">
+      <div class="header-titles">
+        <h2 class="modal-title">Mon Compte</h2>
+        <p class="modal-subtitle">Gérez vos informations personnelles et vos paramètres de sécurité</p>
+      </div>
+      <button class="btn-close" (click)="fermerModale()" title="Fermer">
+        <i class='bx bx-x'></i>
+      </button>
+    </div>
+
+    <!-- Onglets de navigation -->
+    <div class="modal-tabs">
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="ongletActif === 'infos'"
+        (click)="ongletActif = 'infos'">
+        <i class='bx bx-user'></i>
+        <span>Mes Informations</span>
+      </button>
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="ongletActif === 'securite'"
+        (click)="ongletActif = 'securite'">
+        <i class='bx bx-shield-quarter'></i>
+        <span>Sécurité & Mot de passe</span>
+      </button>
+    </div>
+
+    <!-- Contenu : Onglet 1 - Informations Personnelles -->
+    <div class="modal-body" *ngIf="ongletActif === 'infos'">
+      <form (ngSubmit)="enregistrerInfos()">
+        <!-- Photo de profil / Avatar -->
+        <div class="avatar-section">
+          <div class="avatar-wrapper">
+            <img *ngIf="apercuPhoto; else avatarDefaut" [src]="apercuPhoto" alt="Photo de profil" class="avatar-img" />
+            <ng-template #avatarDefaut>
+              <div class="avatar-placeholder">
+                <i class='bx bxs-user'></i>
+              </div>
+            </ng-template>
+
+            <!-- Bouton pour changer la photo -->
+            <label class="btn-change-avatar" title="Changer la photo de profil">
+              <i class='bx bx-camera'></i>
+              <input 
+                type="file" 
+                accept="image/*" 
+                (change)="onFichierSelectionne($event)" 
+                style="display: none;" />
+            </label>
+          </div>
+
+          <div class="avatar-meta">
+            <span class="user-display-name">{{ formInfos.prenom }} {{ formInfos.nom }}</span>
+            <div class="badge-role" [class.badge-admin]="utilisateur?.role === 'admin'">
+              <i class='bx bxs-badge-check'></i>
+              <span>{{ utilisateur?.role | uppercase }}</span>
+            </div>
+            <p class="avatar-hint">Cliquez sur l'appareil photo pour changer votre photo de profil</p>
+          </div>
+        </div>
+
+        <!-- Formulaire Informations -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="prenom">Prénom <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <i class='bx bx-user'></i>
+              <input 
+                id="prenom" 
+                type="text" 
+                name="prenom" 
+                [(ngModel)]="formInfos.prenom" 
+                placeholder="Votre prénom" 
+                required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="nom">Nom de famille <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <i class='bx bx-user'></i>
+              <input 
+                id="nom" 
+                type="text" 
+                name="nom" 
+                [(ngModel)]="formInfos.nom" 
+                placeholder="Votre nom" 
+                required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Adresse Email <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <i class='bx bx-envelope'></i>
+              <input 
+                id="email" 
+                type="email" 
+                name="email" 
+                [(ngModel)]="formInfos.email" 
+                placeholder="nom@exemple.com" 
+                required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="telephone">Numéro de Téléphone</label>
+            <div class="input-with-icon">
+              <i class='bx bx-phone'></i>
+              <input 
+                id="telephone" 
+                type="tel" 
+                name="telephone" 
+                [(ngModel)]="formInfos.telephone" 
+                placeholder="+224 6..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="fermerModale()">Annuler</button>
+          <button type="submit" class="btn-submit" [disabled]="envoiInfos">
+            <i class='bx bx-loader-alt bx-spin' *ngIf="envoiInfos"></i>
+            <i class='bx bx-check' *ngIf="!envoiInfos"></i>
+            <span>{{ envoiInfos ? 'Enregistrement...' : 'Enregistrer les modifications' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Contenu : Onglet 2 - Sécurité & Mot de passe -->
+    <div class="modal-body" *ngIf="ongletActif === 'securite'">
+      <form (ngSubmit)="changerMotDePasse()">
+        <div class="security-banner">
+          <i class='bx bx-lock-alt banner-icon'></i>
+          <div class="banner-text">
+            <strong>Sécurisez votre compte</strong>
+            <p>Le mot de passe doit comporter au moins 6 caractères. Évitez les combinaisons trop simples.</p>
+          </div>
+        </div>
+
+        <div class="form-stack">
+          <!-- Ancien mot de passe -->
+          <div class="form-group">
+            <label for="ancienPassword">Mot de passe actuel <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <i class='bx bx-key'></i>
+              <input 
+                id="ancienPassword" 
+                [type]="afficherAncienPassword ? 'text' : 'password'" 
+                name="ancienPassword" 
+                [(ngModel)]="formPassword.ancienPassword" 
+                placeholder="Votre mot de passe actuel" 
+                required />
+              <button 
+                type="button" 
+                class="btn-toggle-eye" 
+                (click)="afficherAncienPassword = !afficherAncienPassword" 
+                tabindex="-1">
+                <i class='bx' [class.bx-show]="!afficherAncienPassword" [class.bx-hide]="afficherAncienPassword"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Nouveau mot de passe -->
+          <div class="form-group">
+            <label for="nouveauPassword">Nouveau mot de passe <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <i class='bx bx-lock-open-alt'></i>
+              <input 
+                id="nouveauPassword" 
+                [type]="afficherNouveauPassword ? 'text' : 'password'" 
+                name="nouveauPassword" 
+                [(ngModel)]="formPassword.nouveauPassword" 
+                placeholder="Au moins 6 caractères" 
+                minlength="6"
+                required />
+              <button 
+                type="button" 
+                class="btn-toggle-eye" 
+                (click)="afficherNouveauPassword = !afficherNouveauPassword" 
+                tabindex="-1">
+                <i class='bx' [class.bx-show]="!afficherNouveauPassword" [class.bx-hide]="afficherNouveauPassword"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Confirmation mot de passe -->
+          <div class="form-group">
+            <label for="confirmPassword">Confirmer le nouveau mot de passe <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <i class='bx bx-check-shield'></i>
+              <input 
+                id="confirmPassword" 
+                [type]="afficherConfirmPassword ? 'text' : 'password'" 
+                name="confirmPassword" 
+                [(ngModel)]="formPassword.confirmPassword" 
+                placeholder="Retapez le mot de passe" 
+                required />
+              <button 
+                type="button" 
+                class="btn-toggle-eye" 
+                (click)="afficherConfirmPassword = !afficherConfirmPassword" 
+                tabindex="-1">
+                <i class='bx' [class.bx-show]="!afficherConfirmPassword" [class.bx-hide]="afficherConfirmPassword"></i>
+              </button>
+            </div>
+            <!-- Feedback visuel si les mots de passe ne correspondent pas -->
+            <small 
+              class="error-text" 
+              *ngIf="formPassword.confirmPassword && formPassword.nouveauPassword !== formPassword.confirmPassword">
+              <i class='bx bx-error-circle'></i> Les deux mots de passe ne correspondent pas.
+            </small>
+            <small 
+              class="success-text" 
+              *ngIf="formPassword.confirmPassword && formPassword.nouveauPassword === formPassword.confirmPassword && formPassword.nouveauPassword.length >= 6">
+              <i class='bx bx-check-circle'></i> Les mots de passe correspondent parfaitement.
+            </small>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="fermerModale()">Annuler</button>
+          <button 
+            type="submit" 
+            class="btn-submit" 
+            [disabled]="envoiPassword || !formPassword.ancienPassword || formPassword.nouveauPassword.length < 6 || formPassword.nouveauPassword !== formPassword.confirmPassword">
+            <i class='bx bx-loader-alt bx-spin' *ngIf="envoiPassword"></i>
+            <i class='bx bx-shield-check' *ngIf="!envoiPassword"></i>
+            <span>{{ envoiPassword ? 'Modification...' : 'Changer le mot de passe' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

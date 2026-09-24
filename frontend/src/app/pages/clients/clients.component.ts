@@ -9,11 +9,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ClientService } from '../../services/client.service';
 import { CommandeService } from '../../services/commande.service';
 import { FactureService } from '../../services/facture.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 
 @Component({
   selector: 'app-clients',
@@ -26,8 +28,10 @@ export class ClientsComponent implements OnInit {
   private clientService = inject(ClientService);
   private commandeService = inject(CommandeService);
   private factureService = inject(FactureService);
+  private confirmationService = inject(ConfirmationService);
   authService = inject(AuthService);
   private toastService = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
   // Liste de tous les clients
   clients: any[] = [];
@@ -56,6 +60,28 @@ export class ClientsComponent implements OnInit {
 
   ngOnInit(): void {
     this.chargerClients();
+    this.route.queryParams.subscribe(params => {
+      if (params['id']) {
+        this.verifierEtOuvrirClient(params['id']);
+      }
+    });
+  }
+
+  private verifierEtOuvrirClient(targetId: string): void {
+    const clientTrouve = this.clients.find(c => c._id === targetId);
+    if (clientTrouve) {
+      this.voirDetailClient(clientTrouve);
+    } else {
+      this.clientService.getClientParId(targetId).subscribe({
+        next: (res: any) => {
+          const client = res.client || res.data || res;
+          if (client && client._id) {
+            this.voirDetailClient(client);
+          }
+        },
+        error: () => {}
+      });
+    }
   }
 
   // Charger tous les clients depuis le backend
@@ -64,6 +90,8 @@ export class ClientsComponent implements OnInit {
     if (cache && cache.length > 0) {
       this.clients = cache;
       this.chargement = false;
+      const targetId = this.route.snapshot.queryParams['id'];
+      if (targetId) this.verifierEtOuvrirClient(targetId);
     } else {
       this.chargement = true;
     }
@@ -72,6 +100,8 @@ export class ClientsComponent implements OnInit {
       next: (res) => {
         this.clients = res.clients || res.data || (Array.isArray(res) ? res : []);
         this.chargement = false;
+        const targetId = this.route.snapshot.queryParams['id'];
+        if (targetId) this.verifierEtOuvrirClient(targetId);
       },
       error: (err) => {
         console.error('Erreur chargement clients:', err);
@@ -187,19 +217,27 @@ export class ClientsComponent implements OnInit {
   // Supprimer un client
   supprimerClient(id: string, event?: Event): void {
     if (event) event.stopPropagation();
-    if (confirm('Supprimer définitivement ce client ?')) {
-      this.clientService.supprimerClient(id).subscribe({
-        next: () => {
-          this.clients = this.clients.filter(c => c._id !== id);
-          if (this.clientSelectionne?._id === id) this.fermerDetail();
-          this.toastService.success('Le client a été supprimé avec succès !', 'Client supprimé');
-        },
-        error: (err: any) => {
-          const msg = err?.error?.message || 'Erreur lors de la suppression.';
-          this.toastService.error(msg, 'Erreur de suppression');
-        }
-      });
-    }
+    this.confirmationService.confirmer({
+      titre: 'Supprimer le client',
+      message: 'Êtes-vous sûr de vouloir supprimer définitivement ce client ?',
+      texteConfirmer: 'Supprimer',
+      texteAnnuler: 'Annuler',
+      type: 'danger'
+    }).subscribe(confirme => {
+      if (confirme) {
+        this.clientService.supprimerClient(id).subscribe({
+          next: () => {
+            this.clients = this.clients.filter(c => c._id !== id);
+            if (this.clientSelectionne?._id === id) this.fermerDetail();
+            this.toastService.success('Le client a été supprimé avec succès !', 'Client supprimé');
+          },
+          error: (err: any) => {
+            const msg = err?.error?.message || 'Erreur lors de la suppression.';
+            this.toastService.error(msg, 'Erreur de suppression');
+          }
+        });
+      }
+    });
   }
 
   // Calculer le total des achats d'un client

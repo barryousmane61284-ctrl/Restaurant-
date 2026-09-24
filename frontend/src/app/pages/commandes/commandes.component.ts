@@ -10,12 +10,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { CommandeService } from '../../services/commande.service';
 import { PlatService } from '../../services/plat.service';
 import { ClientService } from '../../services/client.service';
 import { FactureService } from '../../services/facture.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 import { Commande, StatutCommande } from '../../models/commande.model';
 import { Plat } from '../../models/plat.model';
 import { Client } from '../../models/client.model';
@@ -33,8 +35,10 @@ export class CommandesComponent implements OnInit {
   private platService = inject(PlatService);
   private clientService = inject(ClientService);
   private factureService = inject(FactureService);
+  private confirmationService = inject(ConfirmationService);
   authService = inject(AuthService);
   private toastService = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
   // Données
   commandes: Commande[] = [];
@@ -71,6 +75,32 @@ export class CommandesComponent implements OnInit {
     this.chargerCommandes();
     this.chargerPlats();
     this.chargerClients();
+    this.route.queryParams.subscribe(params => {
+      if (params['id']) {
+        this.verifierEtOuvrirCommande(params['id']);
+      }
+    });
+  }
+
+  private verifierEtOuvrirCommande(targetId: string): void {
+    this.statutFiltre = 'tous';
+    this.filtrerParStatut('tous');
+    const commande = this.commandes.find(c => c._id === targetId);
+    if (commande) {
+      if (commande.status !== 'terminée' && commande.status !== 'annulée') {
+        this.ouvrirModalEncaissement(commande);
+      }
+    } else {
+      this.commandeService.getCommandeParId(targetId).subscribe({
+        next: (res: any) => {
+          const cmd = res.commande || res.data || res;
+          if (cmd && cmd._id && cmd.status !== 'terminée' && cmd.status !== 'annulée') {
+            this.ouvrirModalEncaissement(cmd);
+          }
+        },
+        error: () => {}
+      });
+    }
   }
 
   chargerCommandes(): void {
@@ -79,6 +109,8 @@ export class CommandesComponent implements OnInit {
       this.commandes = cache;
       this.filtrerParStatut(this.statutFiltre);
       this.chargement = false;
+      const targetId = this.route.snapshot.queryParams['id'];
+      if (targetId) this.verifierEtOuvrirCommande(targetId);
     } else {
       this.chargement = true;
     }
@@ -88,6 +120,8 @@ export class CommandesComponent implements OnInit {
         this.commandes = res.commandes || res.data || (Array.isArray(res) ? res : []);
         this.filtrerParStatut(this.statutFiltre);
         this.chargement = false;
+        const targetId = this.route.snapshot.queryParams['id'];
+        if (targetId) this.verifierEtOuvrirCommande(targetId);
       },
       error: (err) => {
         console.error('Erreur chargement commandes:', err);
@@ -149,19 +183,27 @@ export class CommandesComponent implements OnInit {
   // Suppression d'une commande (DELETE /commande/:id)
   supprimerCommande(commandeId: string, event: Event): void {
     event.stopPropagation();
-    if (confirm('Êtes-vous sûr de vouloir supprimer définitivement cette commande ?')) {
-      this.commandeService.supprimerCommande(commandeId).subscribe({
-        next: () => {
-          this.commandes = this.commandes.filter(c => c._id !== commandeId);
-          this.filtrerParStatut(this.statutFiltre);
-          this.toastService.success('La commande a été supprimée avec succès !', 'Commande supprimée');
-        },
-        error: (err) => {
-          const msg = err.error?.message || 'Erreur lors de la suppression de la commande.';
-          this.toastService.error(msg, 'Erreur de suppression');
-        }
-      });
-    }
+    this.confirmationService.confirmer({
+      titre: 'Supprimer la commande',
+      message: 'Êtes-vous sûr de vouloir supprimer définitivement cette commande ? Cette action est irréversible.',
+      texteConfirmer: 'Supprimer',
+      texteAnnuler: 'Annuler',
+      type: 'danger'
+    }).subscribe(confirme => {
+      if (confirme) {
+        this.commandeService.supprimerCommande(commandeId).subscribe({
+          next: () => {
+            this.commandes = this.commandes.filter(c => c._id !== commandeId);
+            this.filtrerParStatut(this.statutFiltre);
+            this.toastService.success('La commande a été supprimée avec succès !', 'Commande supprimée');
+          },
+          error: (err) => {
+            const msg = err.error?.message || 'Erreur lors de la suppression de la commande.';
+            this.toastService.error(msg, 'Erreur de suppression');
+          }
+        });
+      }
+    });
   }
 
   // --- NOUVELLE COMMANDE ---
@@ -249,8 +291,8 @@ export class CommandesComponent implements OnInit {
   }
 
   // --- ENCAISSEMENT ET FACTURATION ---
-  ouvrirModalEncaissement(commande: Commande, event: Event): void {
-    event.stopPropagation();
+  ouvrirModalEncaissement(commande: Commande, event?: Event): void {
+    if (event) event.stopPropagation();
     this.commandeAEncaisser = commande;
     this.modePaiementChoisi = 'Espèces';
     this.messageErreurEncaissement = '';

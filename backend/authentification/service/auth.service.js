@@ -10,7 +10,8 @@ const utilisateurPublic = (user) => ({
     prenom: user.prenom,
     email: user.email,
     telephone: user.telephone,
-    role: user.role
+    role: user.role,
+    image: user.image
 });
 
 class authservice {
@@ -85,6 +86,36 @@ class authservice {
         }
 
         return utilisateurPublic(user);
+    }
+
+    static rafraichir = async(refreshToken) => {
+        if (!refreshToken) {
+            const error = new Error("Token de rafraîchissement requis");
+            error.status = 400;
+            throw error;
+        }
+
+        try {
+            const payload = JwtUtils.verifyRefreshToken(refreshToken);
+            const user = await authrepository.recuperationId(payload.id);
+
+            if (!user) {
+                const error = new Error("Utilisateur introuvable");
+                error.status = 404;
+                throw error;
+            }
+
+            const accessToken = JwtUtils.generateAccessToken({
+                id: user._id.toString(),
+                role: user.role
+            });
+
+            return { accessToken };
+        } catch (err) {
+            const error = new Error("Token de rafraîchissement expiré ou invalide");
+            error.status = 401;
+            throw error;
+        }
     }
 }
 

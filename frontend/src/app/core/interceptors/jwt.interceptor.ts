@@ -11,19 +11,19 @@
 // 3. Si le jeton est trop vieux ou périmé (erreur 401), il renvoie automatiquement
 //    l'utilisateur vers la page de connexion pour plus de sécurité.
 
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { catchError, throwError, switchMap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  // L'outil Router permet de changer de page en cas de problème
   const router = inject(Router);
+  const http = inject(HttpClient);
 
-  // Étape 1 : On regarde dans le coffre du navigateur (localStorage) s'il y a un token
+  // Étape 1 : Récupération du jeton d'accès
   const token = localStorage.getItem('access_token');
 
-  // Étape 2 : Si un token est trouvé, on ajoute l'en-tête "Authorization: Bearer <token>"
   let requetePrete = req;
   if (token) {
     requetePrete = req.clone({
@@ -33,20 +33,55 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     });
   }
 
-  // Étape 3 : On laisse la requête partir vers Express et on écoute la réponse
+  // Étape 2 : Envoi de la requête et interception des erreurs
   return next(requetePrete).pipe(
     catchError((erreur: HttpErrorResponse) => {
-      // Si Express répond avec le code 401 (Accès refusé ou session expirée)
-      if (erreur.status === 401) {
-        // On nettoie la mémoire du navigateur
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('utilisateur');
+      const estRequeteAuth = req.url.includes('/authentification/connexion') ||
+                             req.url.includes('/authentification/rafraichir');
 
-        // On redirige immédiatement vers la page de login
-        router.navigate(['/login']);
+      // Si erreur 401 et qu'il ne s'agit pas déjà d'un appel d'authentification
+      if (erreur.status === 401 && !estRequeteAuth) {
+        const refreshToken = localStorage.getItem('refresh_token');
+
+        if (refreshToken) {
+          // Tentative de renouvellement silencieux
+          return http.post<{ accessToken: string }>(`${environment.apiUrl}/authentification/rafraichir`, {
+            refreshToken
+          }).pipe(
+            switchMap((res) => {
+              if (res?.accessToken) {
+                localStorage.setItem('access_token', res.accessToken);
+                // On rejoue la requête initiale avec le nouveau jeton
+                const nouvelleRequete = req.clone({
+                  setHeaders: {
+                    Authorization: `Bearer ${res.accessToken}`
+                  }
+                });
+                return next(nouvelleRequete);
+              }
+              // Si échec inattendu, on déconnecte
+              deconnecter(router);
+              return throwError(() => erreur);
+            }),
+            catchError((errRefresh) => {
+              // Le refresh token est lui-même expiré -> déconnexion obligatoire
+              deconnecter(router);
+              return throwError(() => errRefresh);
+            })
+          );
+        } else {
+          deconnecter(router);
+        }
       }
+
       return throwError(() => erreur);
     })
   );
 };
+
+function deconnecter(router: Router): void {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('utilisateur');
+  router.navigate(['/login']);
+}
